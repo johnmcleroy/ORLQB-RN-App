@@ -1,6 +1,17 @@
-# ORLQB React Native App
+# ORLQB React Native App 🛩️
 
-A React Native Expo application for the Ye Ancient Order of Quiet Birdmen, migrated from Ionic Angular for better performance and native experience.
+A comprehensive React Native Expo application for the **Order of Quiet Birdmen (ORLQB)** Orlando Hangar, featuring complete leadership management tools and authentic ORLQB organizational structure. Migrated from Ionic Angular for superior performance and native user experience.
+
+## 🌟 **Featured Capabilities**
+
+- **🏛️ Authentic ORLQB Structure**: Complete 6-persona Leadmen hierarchy with 5-level security system
+- **📋 Leadership Dashboard**: Comprehensive management tools for the 4 main ORLQB gathering types
+- **👥 Member Management**: Profile cards, attendance tracking, and role administration
+- **📦 Resource Management**: Complete Hangar inventory tracking for all supplies and equipment
+- **📊 Administrative Reports**: Attendance, Financial, Logistics, and Meeting Minutes documentation
+- **🔐 Role-based Security**: Hierarchical access control from Guest (Level 0) to Governor/Historian (Level 4)
+
+---
 
 ## 🚀 Getting Started
 
@@ -251,29 +262,276 @@ const MyComponent = () => {
 };
 ```
 
-## 📚 Migration from Ionic
+## 🎯 **ORLQB Leadership Management System**
 
-This app was migrated from Ionic Angular to React Native for:
-- Better performance (native components vs web views)
-- Smaller bundle size
-- Better Firebase integration
-- Improved development experience
+### 📋 **Leadership Dashboard**
+The central hub for ORLQB Leadmen (Level 3+) providing comprehensive management tools for the 4 main types of ORLQB gatherings:
 
-See `MIGRATION_GUIDE.md` for detailed migration notes.
+#### **🗓️ Monthly Meetings**
+- Regular Hangar business meetings and fellowship
+- Agenda preparation and meeting logistics
+- Member notification coordination
+- Recurring schedule management
 
-## 🔧 Development
+#### **✈️ Wing Dings**  
+- Social gatherings and celebrations
+- Entertainment and activity planning
+- Catering and venue coordination
+- Guest list and invitation management
 
-### Testing
-- Use Expo Go app to test on physical device
-- Changes appear instantly (hot reload)
-- No need to build for testing
+#### **🎗️ Initiations**
+- New member induction ceremonies
+- Ceremonial material preparation
+- Candidate coordination and scheduling
+- Protocol compliance and venue arrangement
 
-### Building for Production
-```bash
-# Build for app stores
-eas build --platform all
+#### **⭐ Special Events**
+- Commemorative and unique gatherings
+- External partnership coordination
+- Special logistical arrangements
+- Custom event planning tools
+
+---
+
+### 👥 **Member Management System**
+
+Complete member profile administration with advanced features:
+
+#### **Member Profile Cards**
+- High-resolution member photos
+- Role status with security level badges
+- Contact information (phone, email, address)
+- Emergency contact details
+- Join date and membership notes
+- Active/inactive status management
+
+#### **Attendance Tracking**
+- **Check-in Options**: Present, Called In, Excused, Absent
+- **Event Integration**: Track attendance across all ORLQB gathering types
+- **Historical Data**: Complete participation history per member
+- **Real-time Updates**: Instant attendance recording during events
+- **Participation Reports**: Generate attendance summaries
+
+#### **Advanced Features**
+- **Search & Filter**: By role, name, email, status
+- **Role Management**: Update member roles within ORLQB hierarchy
+- **Batch Operations**: Bulk attendance updates
+- **Export Capabilities**: Member lists and attendance reports
+
+---
+
+### 📦 **Resource & Inventory Management**
+
+Professional-grade inventory system for all Hangar resources:
+
+#### **Resource Categories**
+1. **🍽️ Food & Beverages**: Coffee, Tea, Snacks, Event Catering
+2. **🪑 Furniture & Setup**: Chairs, Tables, Podium, Display Stands
+3. **🎤 Audio/Video**: Microphones, Speakers, Projectors, Cables, Lighting
+4. **📋 Signage & Materials**: Banners, Programs, Certificates, Name Tags
+5. **🎗️ Ceremonial Items**: Robes, Decorations, Awards, Memorabilia
+6. **📦 General Supplies**: Paper Goods, Cleaning Supplies, Office Materials
+
+#### **Inventory Features**
+- **Stock Tracking**: Current quantity, min/max levels
+- **Usage Logging**: Track consumption with operation history
+- **Reorder Alerts**: Automatic low-stock notifications
+- **Supplier Management**: Vendor contact and procurement tracking
+- **Location Mapping**: Storage location tracking
+- **Cost Management**: Budget tracking and expense reporting
+
+#### **Stock Operations**
+- **Quick Actions**: Use/Restock buttons with quantity input
+- **Bulk Updates**: Mass inventory adjustments
+- **Audit Trail**: Complete history of stock changes
+- **Reporting**: Inventory status and usage reports
+
+---
+
+### 📊 **Reports & Documentation System**
+
+Comprehensive reporting tools for administrative record-keeping:
+
+#### **Report Types**
+
+##### **📈 Attendance Reports**
+- Member participation tracking across events
+- Attendance percentages by role and time period
+- Event-specific attendance summaries
+- Trend analysis and participation insights
+
+##### **💰 Financial Reports**
+- Budget tracking and expense management
+- Income categorization and expense analysis
+- Event cost breakdowns and profitability
+- Annual financial summaries
+
+##### **⚙️ Meeting Logistics Reports**
+- Event planning and execution documentation
+- Venue capacity and setup requirements  
+- Resource utilization and logistics coordination
+- Issue tracking and resolution documentation
+
+##### **📝 Meeting Minutes**
+- Official meeting records and decisions
+- Attendee tracking and chairperson documentation
+- Agenda items and motion recording
+- Action item assignment and follow-up
+
+#### **Report Features**
+- **Date Range Filtering**: Custom time period selection
+- **Export Options**: PDF and CSV format support
+- **Template System**: Standardized report formats
+- **Historical Archive**: Complete documentation history
+- **Search & Filter**: Find reports by type, date, or content
+
+---
+
+## 🔧 **Technical Architecture**
+
+### **Frontend Stack**
+- **React Native**: Cross-platform native development
+- **Expo SDK 51**: Development platform and build system
+- **React Navigation**: Stack and tab-based navigation
+- **Expo Vector Icons**: Ionicons for consistent UI
+- **React Context API**: Global state management
+- **AsyncStorage**: Local data persistence
+
+### **Backend & Database**
+- **Firebase Authentication**: Email/password with role-based access
+- **Cloud Firestore**: Real-time database with offline support
+- **Firestore Security Rules**: Server-side authorization enforcement
+- **Firebase SDK**: Native iOS/Android integration
+
+### **Security Architecture**
+- **5-Level Hierarchy**: Granular access control (Levels 0-4)
+- **Role-Based Components**: Client-side authorization wrappers
+- **Server-side Validation**: Firestore rules enforce permissions
+- **Audit Logging**: Complete tracking of administrative actions
+
+### **Data Architecture**
+```
+Firestore Collections:
+├── users/           # Member profiles and roles
+├── events/          # ORLQB gatherings and meetings
+├── attendance/      # Event participation tracking
+├── resources/       # Hangar inventory management
+└── reports/         # Administrative documentation
 ```
 
-## 📄 License
+---
 
-Private - Ye Ancient and Secret Order of Quiet Birdmen (ORLQB)
+## 🚀 **Deployment & Distribution**
+
+### **Development Environment**
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+
+# Platform-specific testing
+npm run ios      # iOS Simulator
+npm run android  # Android Emulator  
+npm run web      # Web browser
+```
+
+### **EAS Build System**
+```bash
+# Development builds (with Expo Dev Client)
+eas build --profile development --platform all
+
+# Preview builds (standalone APK/IPA for testing)
+eas build --profile preview --platform all
+
+# Production builds (app store ready)
+eas build --profile production --platform all
+```
+
+### **Firebase Setup**
+1. Create Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+2. Enable Authentication (Email/Password)
+3. Create Firestore database
+4. Add iOS/Android apps and download config files:
+   - `GoogleService-Info.plist` (iOS)
+   - `google-services.json` (Android)
+5. Deploy Firestore security rules: `firebase deploy --only firestore:rules`
+
+### **Environment Configuration**
+- **Development**: Uses Expo Development Client
+- **Preview**: Standalone builds for testing
+- **Production**: Optimized builds for app stores
+
+---
+
+## 📚 **Migration from Ionic Angular**
+
+This comprehensive React Native application was migrated from Ionic Angular to achieve:
+
+### **Performance Improvements**
+- **Native Components**: True native UI instead of web views
+- **60fps Animations**: Smooth native transitions and interactions
+- **Reduced Bundle Size**: Optimized for mobile deployment
+- **Better Memory Management**: Native garbage collection
+
+### **Enhanced User Experience**  
+- **Native Navigation**: iOS/Android standard navigation patterns
+- **Platform-specific UI**: Adaptive components for each platform
+- **Offline-first Design**: Robust offline functionality
+- **Push Notifications**: Native notification support
+
+### **Developer Benefits**
+- **Hot Reload**: Instant development feedback
+- **Better Debugging**: Native debugging tools integration
+- **Single Codebase**: iOS and Android from one source
+- **Modern Architecture**: React hooks and context patterns
+
+See `MIGRATION_GUIDE.md` for detailed migration notes and comparisons.
+
+---
+
+## 🎯 **Future Enhancements**
+
+- **📱 Push Notifications**: Event reminders and admin alerts
+- **📍 Location Services**: Venue mapping and check-in features  
+- **💬 Messaging System**: Internal member communication
+- **📸 Photo Management**: Event photo galleries and sharing
+- **🔄 Sync Optimization**: Enhanced offline capabilities
+- **📊 Advanced Analytics**: Detailed participation insights
+- **🏆 Achievement System**: Member recognition and badges
+
+---
+
+## 🤝 **Contributing**
+
+This is a private application for the Order of Quiet Birdmen Orlando Hangar. Development is restricted to authorized contributors.
+
+For authorized developers:
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+---
+
+## 📄 **License**
+
+Private - **Ye Ancient and Secret Order of Quiet Birdmen (ORLQB)**  
+Orlando Hangar • Restricted Access • All Rights Reserved
+
+---
+
+## 📞 **Support & Documentation**
+
+- **Technical Documentation**: See `CLAUDE.md` for development guidelines
+- **Component Documentation**: `src/components/` with inline documentation
+- **Firebase Setup**: `firebase.json` and `firestore.rules` configurations
+- **Build Configuration**: `eas.json` for deployment profiles
+
+**Repository**: [https://github.com/johnmcleroy/ORLQB-RN-App](https://github.com/johnmcleroy/ORLQB-RN-App)
+
+---
+
+*🛩️ Generated with [Claude Code](https://claude.ai/code)*
