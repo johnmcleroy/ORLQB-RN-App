@@ -65,8 +65,21 @@ const MembersScreen = ({ navigation }) => {
     if (section.key === 'calendar') {
       setActiveTab('calendar');
     } else {
-      // TODO: Navigate to specific member sub-screens
-      console.log(`Navigate to ${section.route}`);
+      // Navigate to member sub-screens
+      const routeMap = {
+        'directory': 'MemberDirectory',
+        'minutes': 'MeetingMinutes',
+        'resources': 'MemberResources',
+        'signin': 'EventSignIn',
+        'notifications': 'MemberNotifications'
+      };
+      
+      const routeName = routeMap[section.key];
+      if (routeName) {
+        navigation.navigate(routeName);
+      } else {
+        console.log(`Route not implemented for ${section.key}`);
+      }
     }
   };
 

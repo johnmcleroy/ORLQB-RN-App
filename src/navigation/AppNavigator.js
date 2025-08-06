@@ -16,6 +16,13 @@ import LoginScreen from '../screens/auth/LoginScreen';
 import SignUpScreen from '../screens/auth/SignUpScreen';
 import TabNavigator from './TabNavigator';
 
+// Member Portal Screens
+import MemberDirectoryScreen from '../screens/members/MemberDirectoryScreen';
+import MeetingMinutesScreen from '../screens/members/MeetingMinutesScreen';
+import MemberResourcesScreen from '../screens/members/MemberResourcesScreen';
+import EventSignInScreen from '../screens/members/EventSignInScreen';
+import MemberNotificationsScreen from '../screens/members/MemberNotificationsScreen';
+
 const Stack = createStackNavigator();
 
 /**
@@ -46,8 +53,15 @@ const AppNavigator = () => {
             {() => <IntroScreen onComplete={() => setHasSeenIntro(true)} />}
           </Stack.Screen>
         ) : user ? (
-          // User is authenticated - show main app with tabs
-          <Stack.Screen name="MainApp" component={TabNavigator} />
+          // User is authenticated - show main app with tabs and member screens
+          <>
+            <Stack.Screen name="MainApp" component={TabNavigator} />
+            <Stack.Screen name="MemberDirectory" component={MemberDirectoryScreen} />
+            <Stack.Screen name="MeetingMinutes" component={MeetingMinutesScreen} />
+            <Stack.Screen name="MemberResources" component={MemberResourcesScreen} />
+            <Stack.Screen name="EventSignIn" component={EventSignInScreen} />
+            <Stack.Screen name="MemberNotifications" component={MemberNotificationsScreen} />
+          </>
         ) : (
           // User not authenticated - show auth flow
           <>

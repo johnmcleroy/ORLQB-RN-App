@@ -1,128 +1,79 @@
 /**
- * ORLQB Image Assets Constants
+ * ORLQB Image Assets Constants - Simplified for Web Loading
  * 
- * Centralized image management for the ORLQB React Native app
- * Provides easy access to all image assets with proper organization
+ * Using simple placeholders and Unsplash images to ensure web compatibility
  */
 
-// Member Photos
+// Simple color placeholder generator
+const createColorPlaceholder = (width = 400, height = 300, color = 'cccccc', textColor = '666666', text = '') => {
+  return { uri: `https://via.placeholder.com/${width}x${height}/${color}/${textColor}?text=${encodeURIComponent(text || 'ORLQB')}` };
+};
+
+// Member Photos - Simple placeholders
 export const MemberPhotos = {
-  // Default fallback avatar
-  DEFAULT_AVATAR: require('../../assets/images/Member_Photos/default_avatar.png'),
+  DEFAULT_AVATAR: createColorPlaceholder(150, 150, 'f0f0f0', 'FFD700', 'ORLQB Member'),
   
-  // Dynamic member photo loader
   getMemberPhoto: (qbNumber) => {
-    try {
-      return require(`../../assets/images/Member_Photos/member_${qbNumber}.jpg`);
-    } catch (error) {
-      return MemberPhotos.DEFAULT_AVATAR;
+    if (qbNumber) {
+      return createColorPlaceholder(150, 150, 'f0f0f0', 'FFD700', `QB ${qbNumber}`);
     }
+    return MemberPhotos.DEFAULT_AVATAR;
   }
 };
 
-// ORLQB Official Photos
+// ORLQB Official Photos - Simple Unsplash aviation images
 export const ORLQBPhotos = {
-  // Hangar Photos
-  HANGAR_EXTERIOR: require('../../assets/images/ORLQB_Photos/orlqb_hangar_exterior.jpg'),
-  HANGAR_INTERIOR: require('../../assets/images/ORLQB_Photos/orlqb_hangar_interior.jpg'),
-  HANGAR_MEETING_ROOM: require('../../assets/images/ORLQB_Photos/orlqb_meeting_room.jpg'),
+  HANGAR_EXTERIOR: { uri: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80' },
+  HANGAR_INTERIOR: { uri: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80' },
+  HANGAR_MEETING_ROOM: createColorPlaceholder(1200, 800, 'e5e5e5', '666666', 'ORLQB Meeting Room'),
   
-  // Events
-  MONTHLY_MEETING: require('../../assets/images/ORLQB_Photos/orlqb_monthly_meeting.jpg'),
-  LEADERSHIP_CEREMONY: require('../../assets/images/ORLQB_Photos/orlqb_leadership_ceremony.jpg'),
+  MONTHLY_MEETING: createColorPlaceholder(1200, 800, 'f0f8ff', '333333', 'Monthly Meeting'),
+  LEADERSHIP_CEREMONY: createColorPlaceholder(1200, 800, 'fffacd', '333333', 'Leadership Ceremony'),
   
-  // Historical
-  ORLQB_FOUNDING: require('../../assets/images/ORLQB_Photos/orlqb_historical_founding.jpg'),
+  ORLQB_FOUNDING: createColorPlaceholder(1200, 800, 'f5f5dc', '444444', 'ORLQB History'),
   
-  // Backgrounds
-  AVIATION_BACKGROUND: require('../../assets/images/ORLQB_Photos/orlqb_aviation_background.jpg'),
-  INTRO_BACKGROUND: require('../../assets/images/ORLQB_Photos/orlqb_intro_background.jpg'),
+  AVIATION_BACKGROUND: { uri: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80' },
+  INTRO_BACKGROUND: { uri: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80' },
 };
 
-// Quebec Bravo Graphics
+// Quebec Bravo Graphics - Simple placeholders 
 export const QBGraphics = {
-  // Logos
-  ORLQB_LOGO_MAIN: require('../../assets/images/QB_Graphics/qb_logo_main.png'),
-  ORLQB_LOGO_LIGHT: require('../../assets/images/QB_Graphics/qb_logo_light.png'),
-  ORLQB_LOGO_DARK: require('../../assets/images/QB_Graphics/qb_logo_dark.png'),
-  ORLQB_LOGO_ICON: require('../../assets/images/QB_Graphics/qb_logo_icon.png'),
+  ORLQB_LOGO_MAIN: createColorPlaceholder(200, 200, 'FFD700', '000000', 'ORLQB'),
+  ORLQB_LOGO_LIGHT: createColorPlaceholder(200, 200, 'ffffff', 'FFD700', 'ORLQB'),
+  ORLQB_LOGO_DARK: createColorPlaceholder(200, 200, '333333', 'FFD700', 'ORLQB'),
+  ORLQB_LOGO_ICON: createColorPlaceholder(64, 64, 'FFD700', 'ffffff', 'QB'),
   
-  // Aviation Graphics
-  QB_WINGS: require('../../assets/images/QB_Graphics/qb_wings.png'),
-  QB_PROPELLER: require('../../assets/images/QB_Graphics/qb_propeller.png'),
-  QB_COMPASS: require('../../assets/images/QB_Graphics/qb_compass.png'),
+  QB_WINGS: createColorPlaceholder(100, 50, 'FFD700', '333333', 'Wings'),
+  QB_PROPELLER: createColorPlaceholder(80, 80, 'cccccc', '666666', 'Prop'),
+  QB_COMPASS: createColorPlaceholder(100, 100, 'e6e6fa', '4169e1', 'Compass'),
   
-  // Themed Icons
-  QB_MEETING_ICON: require('../../assets/images/QB_Graphics/qb_meeting_icon.png'),
-  QB_LEADERSHIP_ICON: require('../../assets/images/QB_Graphics/qb_leadership_icon.png'),
-  QB_HANGAR_ICON: require('../../assets/images/QB_Graphics/qb_hangar_icon.png'),
+  QB_MEETING_ICON: createColorPlaceholder(48, 48, 'lightblue', '333333', 'Meet'),
+  QB_LEADERSHIP_ICON: createColorPlaceholder(48, 48, 'gold', '333333', 'Lead'),
+  QB_HANGAR_ICON: createColorPlaceholder(48, 48, 'lightgray', '333333', 'Hangar'),
   
-  // Backgrounds and Textures
-  QB_TEXTURE_METAL: require('../../assets/images/QB_Graphics/qb_texture_metal.png'),
-  QB_PATTERN_AVIATION: require('../../assets/images/QB_Graphics/qb_pattern_aviation.png'),
+  QB_TEXTURE_METAL: createColorPlaceholder(400, 300, 'c0c0c0', '666666', 'Metal Texture'),
+  QB_PATTERN_AVIATION: createColorPlaceholder(400, 300, 'f0f8ff', '333333', 'Aviation Pattern'),
 };
 
-// Miscellaneous Photos
+// Miscellaneous Photos - Simple placeholders
 export const MiscPhotos = {
-  // Aviation General
-  AIRPORT_RUNWAY: require('../../assets/images/Misc_Photos/misc_airport_runway.jpg'),
-  AVIATION_SUNSET: require('../../assets/images/Misc_Photos/misc_aviation_sunset.jpg'),
-  PROPELLER_CLOSEUP: require('../../assets/images/Misc_Photos/misc_propeller_closeup.jpg'),
+  AIRPORT_RUNWAY: createColorPlaceholder(1200, 800, 'a9a9a9', '333333', 'Airport Runway'),
+  AVIATION_SUNSET: { uri: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+  PROPELLER_CLOSEUP: createColorPlaceholder(600, 400, 'ddd', '333', 'Propeller'),
   
-  // Orlando Area
-  ORLANDO_EXECUTIVE_AIRPORT: require('../../assets/images/Misc_Photos/misc_orlando_executive.jpg'),
-  ORLANDO_SKYLINE: require('../../assets/images/Misc_Photos/misc_orlando_skyline.jpg'),
+  ORLANDO_EXECUTIVE_AIRPORT: createColorPlaceholder(1200, 800, 'e0e0e0', '444444', 'Orlando Executive'),
+  ORLANDO_SKYLINE: createColorPlaceholder(1200, 600, 'f0f0f0', '555555', 'Orlando Skyline'),
   
-  // Meeting Venues
-  CONFERENCE_ROOM: require('../../assets/images/Misc_Photos/misc_conference_room.jpg'),
+  CONFERENCE_ROOM: createColorPlaceholder(800, 600, 'f5f5f5', '666666', 'Conference Room'),
   
-  // Backgrounds
-  GRADIENT_AVIATION: require('../../assets/images/Misc_Photos/misc_gradient_aviation.jpg'),
-  TEXTURE_CONCRETE: require('../../assets/images/Misc_Photos/misc_texture_concrete.jpg'),
+  GRADIENT_AVIATION: { uri: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+  TEXTURE_CONCRETE: createColorPlaceholder(400, 400, 'cccccc', '888888', 'Concrete'),
 };
 
-// Screen-specific image collections
-export const ScreenImages = {
-  // Intro Screen
-  INTRO: {
-    BACKGROUND: ORLQBPhotos.INTRO_BACKGROUND,
-    LOGO: QBGraphics.ORLQB_LOGO_LIGHT,
-    FALLBACK_BACKGROUND: MiscPhotos.AVIATION_SUNSET,
-  },
-  
-  // Profile Screen
-  PROFILE: {
-    DEFAULT_AVATAR: MemberPhotos.DEFAULT_AVATAR,
-    BACKGROUND: ORLQBPhotos.HANGAR_INTERIOR,
-  },
-  
-  // Calendar Screen
-  CALENDAR: {
-    EVENT_BACKGROUND: ORLQBPhotos.MONTHLY_MEETING,
-    MEETING_ICON: QBGraphics.QB_MEETING_ICON,
-  },
-  
-  // Auth Screens
-  AUTH: {
-    LOGIN_BACKGROUND: ORLQBPhotos.HANGAR_EXTERIOR,
-    SIGNUP_BACKGROUND: MiscPhotos.ORLANDO_EXECUTIVE_AIRPORT,
-  },
-  
-  // Navigation
-  NAVIGATION: {
-    HANGAR_LOCATION: ORLQBPhotos.HANGAR_EXTERIOR,
-    AIRPORT_VIEW: MiscPhotos.ORLANDO_EXECUTIVE_AIRPORT,
-  },
-};
-
-// Image utility functions
+// Simple utility functions
 export const ImageUtils = {
-  // Get member photo with fallback
-  getMemberPhoto: (qbNumber) => {
-    return MemberPhotos.getMemberPhoto(qbNumber);
-  },
+  getMemberPhoto: (qbNumber) => MemberPhotos.getMemberPhoto(qbNumber),
   
-  // Get role-specific icon
   getRoleIcon: (role) => {
     switch (role) {
       case 'governor':
@@ -133,62 +84,14 @@ export const ImageUtils = {
       default:
         return QBGraphics.ORLQB_LOGO_ICON;
     }
-  },
-  
-  // Get event type icon
-  getEventTypeIcon: (eventType) => {
-    switch (eventType) {
-      case 'meeting':
-        return QBGraphics.QB_MEETING_ICON;
-      case 'leadership':
-        return QBGraphics.QB_LEADERSHIP_ICON;
-      case 'orientation':
-        return QBGraphics.QB_WINGS;
-      default:
-        return QBGraphics.ORLQB_LOGO_ICON;
-    }
-  },
-  
-  // Get background for screen
-  getScreenBackground: (screenName) => {
-    return ScreenImages[screenName?.toUpperCase()]?.BACKGROUND || MiscPhotos.GRADIENT_AVIATION;
-  },
+  }
 };
 
-// Export all collections
+// Simple exports
 export default {
   MemberPhotos,
   ORLQBPhotos,
   QBGraphics,
   MiscPhotos,
-  ScreenImages,
   ImageUtils,
 };
-
-// Video assets (for future implementation)
-export const VideoAssets = {
-  // Intro videos (requires expo-av)
-  INTRO_VIDEO: require('../../assets/videos/orlqb_intro.mp4'),
-  HANGAR_TOUR: require('../../assets/videos/orlqb_hangar_tour.mp4'),
-  
-  // Background videos
-  AVIATION_LOOP: require('../../assets/videos/aviation_background_loop.mp4'),
-};
-
-// Usage Examples:
-/*
-// In a component:
-import { ORLQBPhotos, QBGraphics, ImageUtils } from '../constants/images';
-
-// Static image
-<Image source={ORLQBPhotos.HANGAR_EXTERIOR} />
-
-// Dynamic member photo
-<Image source={ImageUtils.getMemberPhoto(123)} />
-
-// Role-specific icon
-<Image source={ImageUtils.getRoleIcon('governor')} />
-
-// Screen background
-<ImageBackground source={ImageUtils.getScreenBackground('intro')} />
-*/

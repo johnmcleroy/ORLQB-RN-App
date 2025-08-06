@@ -19,7 +19,7 @@ const firebaseConfig = {
   measurementId: "G-28Y3N8DK92"
 };
 
-let auth, firestore, app;
+let auth, db, app;
 
 if (Platform.OS === 'web') {
   // Web Firebase SDK
@@ -35,7 +35,7 @@ if (Platform.OS === 'web') {
   }
   
   auth = () => getAuth(app);
-  firestore = () => getFirestore(app);
+  db = getFirestore(app);
 } else {
   // React Native Firebase SDK (for iOS/Android)
   const { initializeApp, getApps } = require('@react-native-firebase/app');
@@ -50,11 +50,11 @@ if (Platform.OS === 'web') {
   }
   
   auth = rnAuth;
-  firestore = rnFirestore;
+  db = rnFirestore();
 }
 
 // Export the services we'll use throughout the app
-export { auth, firestore };
+export { auth, db };
 export default app;
 
 /**

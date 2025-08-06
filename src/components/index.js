@@ -13,6 +13,9 @@ export * from './Members';
 export * from './Resources';
 export * from './Reports';
 
+// Individual Components
+export { default as ProfileCard } from './ProfileCard';
+
 // Future utility modules will be exported here:
 // export * from './Mapping';
 // export * from './Finance';
