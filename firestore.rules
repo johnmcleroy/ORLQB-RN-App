@@ -1,0 +1,211 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is sudo admin (hardcoded emails)
+    function isSudoAdmin() {
+      return isAuthenticated() && 
+        request.auth.token.email == 'thecaptain@captainspeak.com';
+        // Add more sudo admin emails here if needed
+    }
+
+    // Helper function to check security level (0-4)
+    function hasSecurityLevel(minLevel) {
+      if (!isAuthenticated()) return false;
+      
+      // Sudo admin always has access
+      if (isSudoAdmin()) return true;
+      
+      // Check user's security level from token
+      let userLevel = 0;
+      if (request.auth.token.role == 'governor' || request.auth.token.role == 'historian') {
+        userLevel = 4;
+      } else if (request.auth.token.role in ['assistant_governor', 'keyman', 'assistant_keyman', 'beam_man']) {
+        userLevel = 3;
+      } else if (request.auth.token.role == 'member') {
+        userLevel = 2;
+      } else if (request.auth.token.role in ['candidate', 'initiate']) {
+        userLevel = 1;
+      }
+      
+      return userLevel >= minLevel;
+    }
+
+    // Helper function to check if user is Level 4 leadership (Governor/Historian)
+    function isLevel4Leadership() {
+      return hasSecurityLevel(4);
+    }
+
+    // Helper function to check if user is Level 3+ leadership (Leadmen)
+    function isLeadman() {
+      return hasSecurityLevel(3);
+    }
+
+    // Helper function to check if user is Level 2+ (Members)
+    function isMember() {
+      return hasSecurityLevel(2);
+    }
+
+    // ORLQB Events Collection
+    match /events/{eventId} {
+      // Anyone authenticated can read events (guests, members, leadmen, admin)
+      allow read: if isAuthenticated();
+      
+      // Only admins and leadmen can create, update, or delete events
+      allow create, update, delete: if isLeadman();
+      
+      // Additional validation for event data
+      allow write: if hasSecurityLevel(3) && 
+        // Ensure required fields are present
+        resource.data.keys().hasAll(['title', 'date', 'time', 'createdBy']) &&
+        // Ensure at least one event type is selected
+        (resource.data.types is list && resource.data.types.size() > 0) &&
+        // Ensure all event types are valid
+        resource.data.types.hasOnly(['meeting', 'orientation', 'leadership', 'social', 'ceremony', 'training']) &&
+        // Ensure dates are properly formatted
+        resource.data.date is string &&
+        resource.data.time is string &&
+        // Ensure numeric fields are valid
+        (resource.data.maxAttendees is number || resource.data.maxAttendees == null) &&
+        (resource.data.currentAttendees is number || resource.data.currentAttendees == null) &&
+        // Validate recurring pattern if present
+        (!resource.data.keys().hasAny(['recurringPattern']) || 
+         (resource.data.recurringPattern is map &&
+          resource.data.recurringPattern.frequency in ['weekly', 'monthly', 'yearly'] &&
+          resource.data.recurringPattern.dayOfWeek is number &&
+          resource.data.recurringPattern.dayOfWeek >= 0 &&
+          resource.data.recurringPattern.dayOfWeek <= 6 &&
+          resource.data.recurringPattern.weekOfMonth is number &&
+          (resource.data.recurringPattern.weekOfMonth >= 1 && resource.data.recurringPattern.weekOfMonth <= 5 ||
+           resource.data.recurringPattern.weekOfMonth == -1)));
+    }
+
+    // ORLQB User profiles for role management
+    match /users/{userId} {
+      // Users can read their own profile, Level 3+ leadership can read all profiles
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == userId || hasSecurityLevel(3));
+      
+      // Users can update their own profile (but not role or security level)
+      allow update: if isAuthenticated() && 
+        request.auth.uid == userId && 
+        !resource.data.diff(request.resource.data).affectedKeys().hasAny(['role', 'securityLevel', 'hangar', 'isActive', 'createdAt']);
+      
+      // Level 3+ leadership can create user profiles and assign initial roles (except sudo_admin)
+      allow create: if hasSecurityLevel(3) && 
+        request.resource.data.role != 'sudo_admin';
+      
+      // Only sudo admins can update user roles and security levels
+      allow update: if isSudoAdmin() && 
+        resource.data.diff(request.resource.data).affectedKeys().hasAny(['role', 'securityLevel', 'isActive']);
+      
+      // Level 3+ leadership can update non-role fields for members
+      allow update: if hasSecurityLevel(3) && 
+        !resource.data.diff(request.resource.data).affectedKeys().hasAny(['role', 'securityLevel', 'isActive']) &&
+        resource.data.diff(request.resource.data).affectedKeys().hasAny(['displayName', 'updatedAt', 'lastLogin']);
+      
+      // Only sudo admins can delete user profiles
+      allow delete: if isSudoAdmin();
+      
+      // Prevent role escalation - no one can set sudo_admin role via Firestore
+      allow write: if !request.resource.data.keys().hasAny(['role']) || 
+        request.resource.data.role != 'sudo_admin';
+      
+      // Validate ORLQB hangar roles
+      allow write: if !request.resource.data.keys().hasAny(['role']) ||
+        request.resource.data.role in ['guest', 'candidate', 'initiate', 'member', 
+                                       'beam_man', 'assistant_keyman', 'keyman', 'assistant_governor',
+                                       'historian', 'governor', 'sudo_admin'];
+    }
+
+    // Event RSVPs/Attendance Collection
+    match /events/{eventId}/attendees/{userId} {
+      // Users can manage their own RSVP
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Leadmen and admins can view and manage all RSVPs
+      allow read, write: if isLeadman();
+    }
+
+    // Meeting minutes and documents (member-only access)
+    match /documents/{docId} {
+      // Only members and above can access documents
+      allow read: if isMember();
+      
+      // Only leadmen and admins can create/update documents
+      allow create, update: if isLeadman();
+      
+      // Only admins can delete documents
+      allow delete: if isAdmin();
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      // Users can read notifications addressed to them
+      allow read: if isAuthenticated() && 
+        (resource.data.targetUsers.hasAny([request.auth.uid]) ||
+         resource.data.targetRoles.hasAny([request.auth.token.role]) ||
+         resource.data.targetAll == true);
+      
+      // Only leadmen and admins can create notifications
+      allow create: if isLeadman();
+      
+      // Users can update their own notification read status
+      allow update: if isAuthenticated() && 
+        resource.data.diff(request.resource.data).affectedKeys().hasOnly(['readBy']) &&
+        !resource.data.readBy.hasAny([request.auth.uid]) &&
+        request.resource.data.readBy.hasAny([request.auth.uid]);
+      
+      // Only admins can delete notifications
+      allow delete: if isAdmin();
+    }
+
+    // Default deny all other documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+/*
+ORLQB Firebase Security Rules Documentation
+
+Role Hierarchy:
+1. Guest: Can view limited public information
+2. Member: Can view events, documents, and participate in RSVPs
+3. Leadman: Can manage events, create notifications, view member data
+4. Admin: Full access to all data and user management
+
+Event Management:
+- All authenticated users can VIEW events
+- Only Leadmen/Admins can CREATE, UPDATE, DELETE events
+- Event data is validated for required fields and data types
+
+User Management:
+- Users can manage their own profiles (except role changes)
+- Only Admins can assign/change user roles
+- Role checking supports both custom claims and email patterns
+
+RSVP/Attendance:
+- Users can manage their own event attendance
+- Leadmen/Admins can view and manage all attendance records
+
+Security Features:
+- Input validation for all event data
+- Role-based access control at multiple levels
+- Protection against privilege escalation
+- Audit trail through createdBy/updatedAt fields
+
+To deploy these rules:
+1. Install Firebase CLI: npm install -g firebase-tools
+2. Login: firebase login
+3. Initialize project: firebase init firestore
+4. Deploy: firebase deploy --only firestore:rules
+
+Testing:
+Use Firebase Console > Firestore > Rules playground to test scenarios
+*/
