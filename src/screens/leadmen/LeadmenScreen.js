@@ -27,11 +27,13 @@ import { EventManager } from '../../components/Calendar';
 import { MemberManager } from '../../components/Members';
 import { ResourceManager } from '../../components/Resources';
 import { ReportsManager } from '../../components/Reports';
+import { MemberDataImporter } from '../../components/Admin';
 
 const LeadmenScreen = () => {
   const { user, userRole } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [refreshing, setRefreshing] = useState(false);
+  const [showMemberImporter, setShowMemberImporter] = useState(false);
   const [quickStats, setQuickStats] = useState({
     upcomingEvents: 0,
     monthlyMeetings: 0,
@@ -252,6 +254,26 @@ const LeadmenScreen = () => {
           </Text>
         </View>
       </View>
+
+      {/* Data Import Section - Governor/Historian Level */}
+      <RoleBasedComponent requiredLevel={4}>
+        <View style={styles.dataImportSection}>
+          <Text style={styles.sectionTitle}>Data Management</Text>
+          <TouchableOpacity 
+            style={styles.importButton}
+            onPress={() => setShowMemberImporter(true)}
+          >
+            <Ionicons name="cloud-upload-outline" size={20} color="white" />
+            <View style={styles.importButtonContent}>
+              <Text style={styles.importButtonTitle}>Import ORLQB Roster</Text>
+              <Text style={styles.importButtonSubtitle}>
+                Load member data from roster JSON
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward-outline" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+      </RoleBasedComponent>
     </ScrollView>
   );
 
@@ -308,6 +330,12 @@ const LeadmenScreen = () => {
   return (
     <RoleBasedComponent requiredLevel={3}>
       {renderDashboard()}
+      
+      {/* Member Data Importer Modal */}
+      <MemberDataImporter 
+        visible={showMemberImporter}
+        onClose={() => setShowMemberImporter(false)}
+      />
     </RoleBasedComponent>
   );
 };
@@ -529,6 +557,40 @@ const styles = StyleSheet.create({
     color: '#3880ff',
     marginLeft: 8,
     fontWeight: '600',
+  },
+  dataImportSection: {
+    backgroundColor: 'white',
+    margin: 15,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  importButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#7044ff',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 10,
+  },
+  importButtonContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  importButtonTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 2,
+  },
+  importButtonSubtitle: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
   },
 });
 
