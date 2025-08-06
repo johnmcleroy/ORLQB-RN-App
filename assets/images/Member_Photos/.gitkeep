@@ -1,0 +1,13 @@
+# Member Photos Directory
+
+This directory contains member headshot photographs.
+
+## File Naming Convention
+- member_[qbnumber].jpg (e.g., member_123.jpg)
+- default_avatar.png (fallback image)
+
+## Guidelines
+- Square aspect ratio preferred (500x500px)
+- JPG format, optimized for web
+- Obtain member consent before adding photos
+- Provide default avatar for members without photos

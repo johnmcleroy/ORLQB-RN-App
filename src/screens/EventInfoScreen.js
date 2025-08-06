@@ -24,6 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { firestore } from '../services/firebase';
 import { hasSecurityLevel, HANGAR_ROLES } from '../utils/userRoles';
+import { showNavigationOptions, quickNavigate, parseEventLocation } from '../utils/navigationServices';
 
 const EventInfoScreen = ({ event, visible, onClose, onRSVP }) => {
   const { user, userRole } = useAuth();
@@ -31,6 +32,7 @@ const EventInfoScreen = ({ event, visible, onClose, onRSVP }) => {
   const [attendees, setAttendees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showAttendees, setShowAttendees] = useState(false);
+  const [isNavigationAvailable, setIsNavigationAvailable] = useState(false);
 
   useEffect(() => {
     if (event && user) {
@@ -39,7 +41,17 @@ const EventInfoScreen = ({ event, visible, onClose, onRSVP }) => {
         loadAttendees();
       }
     }
+    
+    // Check if navigation is available for this event
+    if (event) {
+      checkNavigationAvailability();
+    }
   }, [event, user]);
+
+  const checkNavigationAvailability = () => {
+    const location = parseEventLocation(event?.location);
+    setIsNavigationAvailable(!!location);
+  };
 
   const checkRSVPStatus = async () => {
     if (!event || !user) return;
@@ -109,6 +121,24 @@ const EventInfoScreen = ({ event, visible, onClose, onRSVP }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGetDirections = () => {
+    if (!event?.location) {
+      Alert.alert('Error', 'Location information is not available for this event.');
+      return;
+    }
+    
+    showNavigationOptions(event.location);
+  };
+
+  const handleQuickNavigation = () => {
+    if (!event?.location) {
+      Alert.alert('Error', 'Location information is not available for this event.');
+      return;
+    }
+    
+    quickNavigate(event.location);
   };
 
   const getEventTypeColor = (type) => {
@@ -214,12 +244,19 @@ const EventInfoScreen = ({ event, visible, onClose, onRSVP }) => {
               </Text>
             </View>
 
-            <View style={styles.detailRow}>
+            <TouchableOpacity 
+              style={[styles.detailRow, isNavigationAvailable && styles.clickableLocation]} 
+              onPress={isNavigationAvailable ? handleGetDirections : undefined}
+              disabled={!isNavigationAvailable}
+            >
               <Ionicons name="location-outline" size={20} color="#666" />
-              <Text style={styles.detailText}>
+              <Text style={[styles.detailText, isNavigationAvailable && styles.clickableLocationText]}>
                 {event.location || 'Location TBD'}
               </Text>
-            </View>
+              {isNavigationAvailable && (
+                <Ionicons name="navigate-outline" size={16} color="#3880ff" style={styles.navigationIcon} />
+              )}
+            </TouchableOpacity>
 
             <View style={styles.detailRow}>
               <Ionicons name="people-outline" size={20} color="#666" />
@@ -289,9 +326,22 @@ const EventInfoScreen = ({ event, visible, onClose, onRSVP }) => {
 
         {/* Action Buttons */}
         <View style={styles.actionContainer}>
+          {/* Directions Button */}
+          {isNavigationAvailable && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.directionsButton]}
+              onPress={handleGetDirections}
+            >
+              <Ionicons name="navigate-outline" size={20} color="white" />
+              <Text style={styles.actionButtonText}>Get Directions</Text>
+            </TouchableOpacity>
+          )}
+          
+          {/* RSVP Button */}
           {event.requiresRSVP && (
             <TouchableOpacity
               style={[
+                styles.actionButton,
                 styles.rsvpButton,
                 isRSVPed ? styles.rsvpButtonConfirmed : styles.rsvpButtonPending,
                 loading && styles.buttonDisabled
@@ -304,7 +354,7 @@ const EventInfoScreen = ({ event, visible, onClose, onRSVP }) => {
                 size={20} 
                 color="white" 
               />
-              <Text style={styles.rsvpButtonText}>
+              <Text style={styles.actionButtonText}>
                 {loading ? 'Processing...' : (isRSVPed ? 'Cancel RSVP' : 'RSVP for Event')}
               </Text>
             </TouchableOpacity>
@@ -388,6 +438,21 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     fontSize: 16,
     color: '#333',
+    flex: 1,
+  },
+  clickableLocation: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginHorizontal: -8,
+    borderRadius: 6,
+    backgroundColor: 'rgba(56, 128, 255, 0.05)',
+  },
+  clickableLocationText: {
+    color: '#3880ff',
+    textDecorationLine: 'underline',
+  },
+  navigationIcon: {
+    marginLeft: 8,
   },
   section: {
     margin: 20,
@@ -452,8 +517,10 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
+    flexDirection: 'row',
+    gap: 12,
   },
-  rsvpButton: {
+  actionButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -464,6 +531,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+    flex: 1,
+  },
+  directionsButton: {
+    backgroundColor: '#FF8C00',
+  },
+  rsvpButton: {
+    // Inherits from actionButton
   },
   rsvpButtonPending: {
     backgroundColor: '#3880ff',
@@ -474,7 +548,7 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     backgroundColor: '#ccc',
   },
-  rsvpButtonText: {
+  actionButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',

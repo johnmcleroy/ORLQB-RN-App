@@ -65,7 +65,8 @@ const CalendarComponent = ({
           maxAttendees: 50,
           requiresRSVP: true,
           isRecurring: true,
-          recurring: 'monthly'
+          recurring: 'monthly',
+          date: dateString
         };
 
         if (!monthlyEvents[dateString]) {
@@ -135,10 +136,11 @@ const CalendarComponent = ({
               attendees: 0,
               location: 'Orlando QB Hangar',
               description: 'Regular monthly meeting for all ORLQB members and guests. Join us for updates, announcements, and fellowship.',
-              maxAttendees: 50,
+              maxAttendees: 150,
               requiresRSVP: true,
               isRecurring: true,
-              recurring: 'monthly'
+              recurring: 'monthly',
+              date: dateString
             };
 
             if (!monthlyEvents[dateString]) {
@@ -219,7 +221,8 @@ const CalendarComponent = ({
                 maxAttendees: 50,
                 requiresRSVP: true,
                 isRecurring: true,
-                recurring: 'monthly'
+                recurring: 'monthly',
+                date: dateString
               };
 
               if (!monthlyEvents[dateString]) {

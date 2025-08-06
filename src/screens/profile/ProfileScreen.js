@@ -3,10 +3,11 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Image, ImageBackground } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MemberPhotos, ORLQBPhotos } from '../../constants/images';
 
 const ProfileScreen = () => {
   const { user, signOut, userRole } = useAuth();
@@ -52,12 +53,26 @@ const ProfileScreen = () => {
     );
   };
 
+  const memberPhoto = user?.qbNumber ? MemberPhotos.getMemberPhoto(user.qbNumber) : MemberPhotos.DEFAULT_AVATAR;
+
   return (
-    <View style={styles.container}>
+    <ImageBackground
+      source={ORLQBPhotos.HANGAR_INTERIOR}
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay} />
+      
       <View style={styles.header}>
-        <Ionicons name="person-circle-outline" size={80} color="#3880ff" />
+        <View style={styles.avatarContainer}>
+          <Image source={memberPhoto} style={styles.avatar} />
+          <View style={styles.avatarBorder} />
+        </View>
         <Text style={styles.email}>{user?.email}</Text>
-        <Text style={styles.role}>Role: {userRole || 'Guest'}</Text>
+        <View style={styles.roleContainer}>
+          <Ionicons name="shield-outline" size={16} color="#FFD700" />
+          <Text style={styles.role}>{userRole || 'Guest'}</Text>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -92,38 +107,89 @@ const ProfileScreen = () => {
           <Text style={[styles.menuText, { color: '#ff3333' }]}>Sign Out</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   header: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     alignItems: 'center',
     padding: 30,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: 'rgba(224, 224, 224, 0.7)',
+    marginTop: 50,
+    marginHorizontal: 15,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#f0f0f0',
+  },
+  avatarBorder: {
+    position: 'absolute',
+    top: -3,
+    left: -3,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 3,
+    borderColor: '#FFD700',
   },
   email: {
     fontSize: 18,
     color: '#333',
-    marginTop: 10,
+    marginTop: 15,
+    fontWeight: '600',
+    textShadowColor: 'rgba(255, 255, 255, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  roleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
   },
   role: {
     fontSize: 14,
     color: '#666',
-    marginTop: 5,
+    marginLeft: 6,
     textTransform: 'capitalize',
+    fontWeight: '500',
   },
   section: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     margin: 15,
     borderRadius: 12,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   sectionTitle: {
     fontSize: 16,

@@ -2,9 +2,24 @@
  * IntroScreen - First-time user introduction screen
  * 
  * Features:
- * - Full-screen portrait video/animation
+ * - Full-screen ORLQB-themed background (image or video)
  * - Auto-advances to login after 10 seconds or user tap
  * - Only shows for first-time users
+ * - Quebec Bravo aviation theme with gold accent colors
+ * 
+ * Background Media Options:
+ * 1. Image Background (Current): Uses ORLQB hangar/aviation photography
+ * 2. Video Background (Future): ORLQB intro video with expo-av package
+ * 
+ * To Add ORLQB-Specific Assets:
+ * 1. Add images to: assets/images/ORLQB_Photos/orlqb_intro_background.jpg
+ * 2. Add logo to: assets/images/QB_Graphics/qb_logo_light.png
+ * 3. Add video to: assets/videos/orlqb_intro.mp4 (requires expo-av)
+ * 
+ * Current Status:
+ * - Using fallback Unsplash aviation image
+ * - Text-based ORLQB logo (ready for image replacement)
+ * - Video support commented out (requires expo-av installation)
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -17,8 +32,18 @@ import {
   StatusBar,
   Text,
   ImageBackground,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// ORLQB Images (will be populated with actual assets)
+const ORLQB_IMAGES = {
+  // Fallback to Unsplash aviation image until ORLQB assets are added
+  INTRO_BACKGROUND: { uri: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80' },
+  // Future: Local ORLQB assets
+  // INTRO_BACKGROUND: require('../../assets/images/ORLQB_Photos/orlqb_intro_background.jpg'),
+  // ORLQB_LOGO: require('../../assets/images/QB_Graphics/qb_logo_light.png'),
+};
 
 const { width, height } = Dimensions.get('window');
 
@@ -76,9 +101,9 @@ const IntroScreen = ({ onComplete }) => {
       {/* To add video support, install expo-av: npm install expo-av */}
       {/* Then uncomment and add your video file to assets/videos/ */}
 
-      {/* Animated Background for Demo */}
+      {/* ORLQB Intro Background */}
       <ImageBackground
-        source={{ uri: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80' }}
+        source={ORLQB_IMAGES.INTRO_BACKGROUND}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -95,8 +120,11 @@ const IntroScreen = ({ onComplete }) => {
         >
           {/* ORLQB Logo/Branding Area */}
           <View style={styles.logoContainer}>
+            {/* Future: Replace with actual ORLQB logo image */}
+            {/* <Image source={ORLQB_IMAGES.ORLQB_LOGO} style={styles.logoImage} /> */}
             <Text style={styles.logoText}>ORLQB</Text>
             <Text style={styles.tagline}>Orlando Leadership Management</Text>
+            <Text style={styles.qbText}>Quebec Bravo</Text>
           </View>
 
           {/* Welcome Message */}
@@ -105,7 +133,8 @@ const IntroScreen = ({ onComplete }) => {
             <Text style={styles.appName}>ORLQB Leadership App</Text>
             <Text style={styles.description}>
               Connecting Orlando's aviation leaders{'\n'}
-              Building tomorrow's pilots today
+              Building tomorrow's pilots today{'\n'}
+              Orlando Executive Airport Hangar
             </Text>
           </View>
 
@@ -173,6 +202,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 60,
   },
+  logoImage: {
+    width: 120,
+    height: 120,
+    marginBottom: 20,
+    resizeMode: 'contain',
+  },
   logoText: {
     fontSize: 72,
     fontWeight: 'bold',
@@ -190,6 +225,17 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 5,
+  },
+  qbText: {
+    fontSize: 16,
+    color: '#FFD700',
+    marginTop: 5,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
+    letterSpacing: 2,
   },
   messageContainer: {
     alignItems: 'center',

@@ -15,7 +15,11 @@
     "ios": {
       "supportsTablet": true,
       "googleServicesFile": "./GoogleService-Info.plist",
-      "bundleIdentifier": "org.orlqb.RN_ORLQB_APP"
+      "bundleIdentifier": "org.orlqb.RN_ORLQB_APP",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "ORLQB needs location access to provide turn-by-turn navigation to event locations and hangar meetings.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "ORLQB needs location access to provide turn-by-turn navigation to event locations and hangar meetings."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +28,11 @@
       },
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
-      "package": "org.orlqb.RN_ORLQB_APP"
+      "package": "org.orlqb.RN_ORLQB_APP",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
