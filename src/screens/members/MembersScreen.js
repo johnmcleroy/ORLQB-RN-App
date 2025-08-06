@@ -135,6 +135,20 @@ const MembersScreen = ({ navigation }) => {
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
+          style={[styles.tab, activeTab === 'resources' && styles.activeTab]}
+          onPress={() => setActiveTab('resources')}
+        >
+          <Ionicons 
+            name={activeTab === 'resources' ? 'grid' : 'grid-outline'} 
+            size={20} 
+            color={activeTab === 'resources' ? '#3880ff' : '#666'} 
+          />
+          <Text style={[styles.tabText, activeTab === 'resources' && styles.activeTabText]}>
+            Resources
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.tab, activeTab === 'calendar' && styles.activeTab]}
           onPress={() => setActiveTab('calendar')}
         >
@@ -148,19 +162,7 @@ const MembersScreen = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'resources' && styles.activeTab]}
-          onPress={() => setActiveTab('resources')}
-        >
-          <Ionicons 
-            name={activeTab === 'resources' ? 'grid' : 'grid-outline'} 
-            size={20} 
-            color={activeTab === 'resources' ? '#3880ff' : '#666'} 
-          />
-          <Text style={[styles.tabText, activeTab === 'resources' && styles.activeTabText]}>
-            Resources
-          </Text>
-        </TouchableOpacity>
+        
       </View>
 
       {/* Tab Content */}

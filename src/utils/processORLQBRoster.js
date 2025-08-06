@@ -5,7 +5,7 @@
  * for the ORLQB Member Management System with all required metadata fields.
  */
 
-import { HANGAR_ROLES } from './userRoles';
+import { HANGAR_ROLES, SECURITY_LEVELS } from './userRoles';
 
 /**
  * Parse and clean phone number
@@ -43,13 +43,18 @@ const parseName = (fullName) => {
 };
 
 /**
- * Generate display name from parsed name
+ * Generate display name from full name and nickname
  */
-const generateDisplayName = (firstName, lastName, nickname = '') => {
+const generateDisplayName = (fullName, nickname = '') => {
   if (nickname && nickname.trim() !== '') {
+    // For names like "McLeroy, Johnathan" with nickname "JohnnyMac"
+    // Return "Johnathan \"JohnnyMac\" McLeroy"
+    const { firstName, lastName } = parseName(fullName);
     return `${firstName} "${nickname}" ${lastName}`.trim();
   }
-  return `${firstName} ${lastName}`.trim();
+  // Just return the first name from the full name
+  const { firstName } = parseName(fullName);
+  return firstName || fullName;
 };
 
 /**
@@ -92,82 +97,58 @@ const generateAddress = (street = '', city = '', state = '') => {
 };
 
 /**
+ * Get security level for a given role
+ */
+const getSecurityLevel = (role) => {
+  return SECURITY_LEVELS[role] || 0;
+};
+
+/**
  * Process a single member from the roster JSON
  */
 export const processRosterMember = (rosterMember) => {
-  const { firstName, lastName } = parseName(rosterMember.name || '');
-  
   const processedMember = {
-    // Basic Information
-    qbNumber: rosterMember.qbNumber || '',
-    firstName: firstName,
-    lastName: lastName,
-    displayName: generateDisplayName(firstName, lastName, rosterMember.nickname),
-    nickname: rosterMember.nickname || '',
+    // === ROSTER METADATA FIELDS (exact from JSON) ===
+    status: rosterMember.status || '', // Member status (A=Active, I=Inactive, U=Unknown)
+    qbNumber: rosterMember.qbNumber || '', // QB membership number
+    name: rosterMember.name || '', // Full name (Last, First format)
+    nickname: rosterMember.nickname || '', // Nickname or preferred name
+    Street: rosterMember.Street || '', // Street address
+    city: rosterMember.city || '', // City of residence
+    state: rosterMember.state || '', // State of residence
+    email: rosterMember.email || '', // Email address
+    email2: rosterMember.email2 || '', // Secondary email address (if applicable)
+    phone: cleanPhoneNumber(rosterMember.phone || ''), // Primary phone number
+    phone2: cleanPhoneNumber(rosterMember.phone2 || ''), // Secondary phone number (if applicable)
+    beamExpires: rosterMember.beamExpires || '', // Beam magazine expiration status/date
+    emergencyContact: rosterMember.emergencyContact || '', // Emergency contact name
+    emergencyPhone: rosterMember.emergencyPhone || '', // Emergency contact phone number
+    emergencyEmail: rosterMember.emergencyEmail || '', // Emergency contact email address
+    emerRelationship: rosterMember.emerRelationship || '', // Relationship to emergency contact
+    DateOfBirth: rosterMember.DateOfBirth || '', // Date of birth (MM/DD/YYYY)
+    inductingHangar: rosterMember.inductingHangar || '', // Hanger where the member was inducted
+    inductingDate: rosterMember.inductingDate || '', // Date of induction into the ORL (MM/DD/YYYY)
+    certificateNumber: rosterMember.certificateNumber || '', // Certificate number (if applicable)
+    'certifiedPIC/SoloHours': rosterMember['certifiedPIC/SoloHours'] || '', // Total hours as Pilot in Command or solo (if applicable)
+    soloDate: rosterMember.soloDate || '', // Date of first solo flight (if applicable, MM/DD/YYYY)
+    soloLocation: rosterMember.soloLocation || '', // Location of first solo flight (if applicable)
+    sponsor1: rosterMember.sponsor1 || '', // First sponsor's name (Last, First qbNumber)
+    sponsor2: rosterMember.sponsor2 || '', // Second sponsor's name (Last, First qbNumber)
+    sponsor3: rosterMember.sponsor3 || '', // Third sponsor's name (Last, First qbNumber)
+    sponsor4: rosterMember.sponsor4 || '', // Fourth sponsor's name (Last, First qbNumber)
+    sponsor5: rosterMember.sponsor5 || '', // Fifth sponsor's name (Last, First qbNumber)
+    goneWest: rosterMember.goneWest || '', // Date the member went west (if applicable, MM/DD/YYYY)
     
-    // Contact Information
-    email: rosterMember.email || '',
-    email2: rosterMember.email2 || '',
-    phone: cleanPhoneNumber(rosterMember.phone || ''),
-    phone2: cleanPhoneNumber(rosterMember.phone2 || ''),
-    
-    // Address Information
-    address: generateAddress(rosterMember.Street, rosterMember.city, rosterMember.state),
-    street: rosterMember.Street || '',
-    city: rosterMember.city || '',
-    state: rosterMember.state || '',
-    
-    // Emergency Contact Information
-    emergencyContact: rosterMember.emergencyContact || '',
-    emergencyPhone: rosterMember.emergencyPhone || '',
-    emergencyEmail: rosterMember.emergencyEmail || '',
-    emergencyRelationship: rosterMember.emerRelationship || '',
-    
-    // ORLQB Specific Information
-    role: determineMemberRole(rosterMember.status, rosterMember.qbNumber, rosterMember.name),
-    status: rosterMember.status, // A=Active, I=Inactive, U=Unknown
-    isActive: rosterMember.status === 'A',
-    
-    // Membership Details
-    dateOfBirth: rosterMember.DateOfBirth || '',
-    inductingHangar: rosterMember.inductingHangar || 'Orlando Hangar', // Default to Orlando
-    inductionDate: rosterMember.inductingDate || '',
-    joinDate: rosterMember.inductingDate || '', // Use induction date as join date
-    
-    // Aviation Information
-    certificateNumber: rosterMember.certificateNumber || '',
-    pilotHours: rosterMember['certifiedPIC/SoloHours'] || '',
-    soloDate: rosterMember.soloDate || '',
-    soloLocation: rosterMember.soloLocation || '',
-    
-    // Sponsorship Information
-    sponsors: [
-      rosterMember.sponsor1,
-      rosterMember.sponsor2, 
-      rosterMember.sponsor3,
-      rosterMember.sponsor4,
-      rosterMember.sponsor5
-    ].filter(sponsor => sponsor && sponsor.trim() !== ''),
-    
-    // Magazine and Membership Status
-    beamExpires: rosterMember.beamExpires || 'Expired',
-    beamStatus: rosterMember.beamExpires && rosterMember.beamExpires !== 'Expired' ? 'active' : 'expired',
-    
-    // Memorial Information
-    goneWest: rosterMember.goneWest || '',
-    isDeceased: !!(rosterMember.goneWest && rosterMember.goneWest.trim() !== ''),
-    
-    // System Fields
-    notes: `QB Number: ${rosterMember.qbNumber}${rosterMember.nickname ? ` • Nickname: ${rosterMember.nickname}` : ''}`,
-    profilePhoto: '', // Would need to be added separately
-    
-    // Metadata
+    // === EXISTING SYSTEM FIELDS (for compatibility) ===
     createdAt: new Date().toISOString(),
-    createdBy: 'roster-import',
-    updatedAt: new Date().toISOString(),
-    updatedBy: 'roster-import',
-    importSource: 'orl_roster_json',
-    importDate: new Date().toISOString()
+    displayName: generateDisplayName(rosterMember.name, rosterMember.nickname),
+    hangar: 'Orlando',
+    isActive: rosterMember.status === 'A',
+    lastLogin: '',
+    role: determineMemberRole(rosterMember.status, rosterMember.qbNumber, rosterMember.name),
+    securityLevel: getSecurityLevel(determineMemberRole(rosterMember.status, rosterMember.qbNumber, rosterMember.name)),
+    uid: '',
+    updatedAt: new Date().toISOString()
   };
   
   return processedMember;
@@ -224,10 +205,8 @@ export const generateFirebaseMembers = (processedRosterData) => {
     // Use QB Number as document ID for consistency
     const docId = `qb_${member.qbNumber}`;
     
-    // Remove fields that shouldn't go to Firebase
-    const { importSource, importDate, processingVersion, ...firebaseMember } = member;
-    
-    firebaseMembers[docId] = firebaseMember;
+    // Firebase document contains all fields exactly as processed
+    firebaseMembers[docId] = { ...member };
   });
   
   return firebaseMembers;
@@ -245,6 +224,153 @@ export const findMembers = (processedMembers, criteria) => {
       return member[key] === value;
     });
   });
+};
+
+/**
+ * Merge existing Firebase Auth user with roster data
+ * This ensures compatibility between login-based users and roster imports
+ */
+export const mergeWithExistingUser = (rosterMember, existingUser = null) => {
+  if (!existingUser) {
+    return rosterMember;
+  }
+  
+  // Preserve Firebase Auth fields and merge with roster data
+  return {
+    ...rosterMember,
+    
+    // Preserve Firebase Auth specific fields
+    uid: existingUser.uid || rosterMember.uid,
+    email: existingUser.email || rosterMember.email, // Prefer auth email
+    photoURL: existingUser.photoURL || rosterMember.photoURL,
+    isEmailVerified: existingUser.emailVerified || rosterMember.isEmailVerified,
+    
+    // Preserve existing user timestamps if they exist
+    createdAt: existingUser.createdAt || rosterMember.createdAt,
+    lastLoginAt: existingUser.lastLoginAt || rosterMember.lastLoginAt,
+    
+    // Mark as merged user type
+    membershipType: 'firebase-auth-merged',
+    
+    // Preserve existing preferences if available
+    preferences: {
+      ...rosterMember.preferences,
+      ...existingUser.preferences
+    },
+    
+    // Update metadata
+    updatedAt: new Date().toISOString(),
+    updatedBy: 'roster-merge'
+  };
+};
+
+/**
+ * Generate user document for existing Firebase Auth users without roster data
+ * This creates a compatible structure for users who log in but aren't in the roster
+ */
+export const generateAuthUserDocument = (firebaseUser, assignedRole = HANGAR_ROLES.GUEST) => {
+  const { firstName, lastName } = parseName(firebaseUser.displayName || '');
+  
+  return {
+    // Firebase Auth Fields
+    uid: firebaseUser.uid,
+    email: firebaseUser.email || '',
+    photoURL: firebaseUser.photoURL || '',
+    isEmailVerified: firebaseUser.emailVerified || false,
+    
+    // Basic Information
+    qbNumber: '', // Not available for auth-only users
+    firstName: firstName,
+    lastName: lastName,
+    fullName: firebaseUser.displayName || '',
+    displayName: firebaseUser.displayName || `${firstName} ${lastName}`.trim(),
+    nickname: '',
+    
+    // Contact Information (minimal for auth users)
+    email2: '',
+    phone: firebaseUser.phoneNumber || '',
+    phone2: '',
+    
+    // Address Information (empty for auth users)
+    address: '',
+    street: '',
+    Street: '',
+    city: '',
+    state: '',
+    
+    // Emergency Contacts (empty for auth users)
+    emergencyContact: '',
+    emergencyPhone: '',
+    emergencyEmail: '',
+    emergencyRelationship: '',
+    emerRelationship: '',
+    
+    // Role and Status
+    role: assignedRole,
+    status: 'U', // Unknown status for auth-only users
+    isActive: true, // Auth users are considered active
+    securityLevel: getSecurityLevel(assignedRole),
+    permissions: [],
+    
+    // Membership Details (empty for auth users)
+    dateOfBirth: '',
+    DateOfBirth: '',
+    inductingHangar: '',
+    inductionDate: '',
+    inductingDate: '',
+    joinDate: new Date().toISOString(), // Use current date as join date
+    
+    // Aviation Information (empty for auth users)
+    certificateNumber: '',
+    pilotHours: '',
+    'certifiedPIC/SoloHours': '',
+    soloDate: '',
+    soloLocation: '',
+    
+    // Sponsorship (empty for auth users)
+    sponsors: [],
+    sponsor1: '',
+    sponsor2: '',
+    sponsor3: '',
+    sponsor4: '',
+    sponsor5: '',
+    
+    // Beam Magazine (default to expired for auth users)
+    beamExpires: 'Expired',
+    beamStatus: 'expired',
+    
+    // Memorial (not applicable for auth users)
+    goneWest: '',
+    isDeceased: false,
+    
+    // Profile
+    profilePhoto: '',
+    
+    // System Fields
+    notes: 'Firebase Authentication User',
+    accountStatus: 'active',
+    membershipType: 'firebase-auth',
+    isPhoneVerified: false,
+    
+    // User Preferences
+    preferences: {
+      notifications: true,
+      emailUpdates: true,
+      privacy: 'members-only'
+    },
+    
+    // Timestamps
+    createdAt: new Date().toISOString(),
+    createdBy: 'firebase-auth',
+    updatedAt: new Date().toISOString(),
+    updatedBy: 'firebase-auth',
+    lastLoginAt: new Date().toISOString(),
+    
+    // Import Metadata
+    importSource: 'firebase-auth',
+    importDate: new Date().toISOString(),
+    dataVersion: '1.0.0'
+  };
 };
 
 /**
@@ -283,6 +409,8 @@ export default {
   processRosterMember,
   processORLQBRoster,
   generateFirebaseMembers,
+  mergeWithExistingUser,
+  generateAuthUserDocument,
   findMembers,
   exportMemberData
 };

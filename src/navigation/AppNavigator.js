@@ -11,7 +11,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import { useAuth } from '../context/AuthContext';
 import LoadingScreen from '../screens/LoadingScreen';
-import WelcomeScreen from '../screens/auth/WelcomeScreen';
+import IntroScreen from '../screens/auth/IntroScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import SignUpScreen from '../screens/auth/SignUpScreen';
 import TabNavigator from './TabNavigator';
@@ -25,7 +25,9 @@ const Stack = createStackNavigator();
  * based on authentication state. Similar to Angular guards but simpler.
  */
 const AppNavigator = () => {
-  const { user, isLoading, hasSeenIntroduction } = useAuth();
+  const { user, isLoading, hasSeenIntro, setHasSeenIntro } = useAuth();
+
+  console.log('AppNavigator: isLoading=', isLoading, 'hasSeenIntro=', hasSeenIntro, 'user=', user ? 'authenticated' : 'not authenticated');
 
   /**
    * Show loading screen while checking auth state
@@ -38,15 +40,17 @@ const AppNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user ? (
+        {!hasSeenIntro ? (
+          // First time user - show intro screen
+          <Stack.Screen name="Intro">
+            {() => <IntroScreen onComplete={() => setHasSeenIntro(true)} />}
+          </Stack.Screen>
+        ) : user ? (
           // User is authenticated - show main app with tabs
           <Stack.Screen name="MainApp" component={TabNavigator} />
         ) : (
           // User not authenticated - show auth flow
           <>
-            {!hasSeenIntroduction && (
-              <Stack.Screen name="Welcome" component={WelcomeScreen} />
-            )}
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="SignUp" component={SignUpScreen} />
           </>

@@ -15,6 +15,7 @@ import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { firestore } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
+import EventInfoScreen from '../../screens/EventInfoScreen';
 
 const CalendarComponent = ({ 
   userRole = 'member', // 'guest', 'member', 'leadman', 'admin'
@@ -27,10 +28,14 @@ const CalendarComponent = ({
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [events, setEvents] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [showEventInfo, setShowEventInfo] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   // Load events from Firebase on component mount
   useEffect(() => {
     if (!user) {
+      // Even without a user, show monthly meetings for guests
+      generateMonthlyMeetingsOnly();
       setIsLoading(false);
       return;
     }
@@ -38,6 +43,42 @@ const CalendarComponent = ({
     const unsubscribe = setupEventListener();
     return unsubscribe;
   }, [user]);
+
+  // Generate monthly meetings only (for guests or when Firebase fails)
+  const generateMonthlyMeetingsOnly = () => {
+    const currentYear = new Date().getFullYear();
+    const monthlyEvents = {};
+
+    for (let year = currentYear; year <= currentYear + 1; year++) {
+      for (let month = 0; month < 12; month++) {
+        const secondMonday = getSecondMonday(year, month);
+        const dateString = secondMonday.toISOString().split('T')[0];
+        
+        const monthlyMeeting = {
+          id: `monthly-meeting-${dateString}`,
+          title: 'ORLQB Monthly Meeting',
+          time: '19:00',
+          type: 'meeting',
+          attendees: 0,
+          location: 'Orlando QB Hangar',
+          description: 'Regular monthly meeting for all ORLQB members and guests. Join us for updates, announcements, and fellowship.',
+          maxAttendees: 50,
+          requiresRSVP: true,
+          isRecurring: true,
+          recurring: 'monthly'
+        };
+
+        if (!monthlyEvents[dateString]) {
+          monthlyEvents[dateString] = [];
+        }
+        
+        monthlyEvents[dateString].push(monthlyMeeting);
+      }
+    }
+
+    setEvents(monthlyEvents);
+    console.log('Generated monthly meetings only:', monthlyEvents);
+  };
 
   // Set up real-time Firestore listener for events
   const setupEventListener = () => {
@@ -76,11 +117,55 @@ const CalendarComponent = ({
           });
         });
         
-        setEvents(eventsData);
+        // Always include monthly meetings with Firebase events
+        const currentYear = new Date().getFullYear();
+        const monthlyEvents = {};
+
+        // Generate meetings for current year and next year
+        for (let year = currentYear; year <= currentYear + 1; year++) {
+          for (let month = 0; month < 12; month++) {
+            const secondMonday = getSecondMonday(year, month);
+            const dateString = secondMonday.toISOString().split('T')[0];
+            
+            const monthlyMeeting = {
+              id: `monthly-meeting-${dateString}`,
+              title: 'ORLQB Monthly Meeting',
+              time: '19:00',
+              type: 'meeting',
+              attendees: 0,
+              location: 'Orlando QB Hangar',
+              description: 'Regular monthly meeting for all ORLQB members and guests. Join us for updates, announcements, and fellowship.',
+              maxAttendees: 50,
+              requiresRSVP: true,
+              isRecurring: true,
+              recurring: 'monthly'
+            };
+
+            if (!monthlyEvents[dateString]) {
+              monthlyEvents[dateString] = [];
+            }
+            
+            monthlyEvents[dateString].push(monthlyMeeting);
+          }
+        }
+
+        // Merge Firebase events with monthly meetings
+        const mergedEvents = { ...eventsData };
+        Object.keys(monthlyEvents).forEach(date => {
+          if (mergedEvents[date]) {
+            mergedEvents[date] = [...mergedEvents[date], ...monthlyEvents[date]];
+          } else {
+            mergedEvents[date] = monthlyEvents[date];
+          }
+        });
+
+        setEvents(mergedEvents);
         setIsLoading(false);
-        console.log('Calendar events loaded from Firestore');
+        console.log('Calendar events loaded from Firestore and merged with monthly meetings:', mergedEvents);
       }, (error) => {
         console.error('Error loading calendar events:', error);
+        // Still show monthly meetings even if Firebase fails
+        generateMonthlyMeetingsOnly();
         setIsLoading(false);
       });
     } else {
@@ -113,11 +198,55 @@ const CalendarComponent = ({
             });
           });
           
-          setEvents(eventsData);
+          // Always include monthly meetings with Firebase events
+          const currentYear = new Date().getFullYear();
+          const monthlyEvents = {};
+
+          // Generate meetings for current year and next year
+          for (let year = currentYear; year <= currentYear + 1; year++) {
+            for (let month = 0; month < 12; month++) {
+              const secondMonday = getSecondMonday(year, month);
+              const dateString = secondMonday.toISOString().split('T')[0];
+              
+              const monthlyMeeting = {
+                id: `monthly-meeting-${dateString}`,
+                title: 'ORLQB Monthly Meeting',
+                time: '19:00',
+                type: 'meeting',
+                attendees: 0,
+                location: 'Orlando QB Hangar',
+                description: 'Regular monthly meeting for all ORLQB members and guests. Join us for updates, announcements, and fellowship.',
+                maxAttendees: 50,
+                requiresRSVP: true,
+                isRecurring: true,
+                recurring: 'monthly'
+              };
+
+              if (!monthlyEvents[dateString]) {
+                monthlyEvents[dateString] = [];
+              }
+              
+              monthlyEvents[dateString].push(monthlyMeeting);
+            }
+          }
+
+          // Merge Firebase events with monthly meetings
+          const mergedEvents = { ...eventsData };
+          Object.keys(monthlyEvents).forEach(date => {
+            if (mergedEvents[date]) {
+              mergedEvents[date] = [...mergedEvents[date], ...monthlyEvents[date]];
+            } else {
+              mergedEvents[date] = monthlyEvents[date];
+            }
+          });
+
+          setEvents(mergedEvents);
           setIsLoading(false);
-          console.log('Calendar events loaded from Firestore');
+          console.log('Calendar events loaded from Firestore and merged with monthly meetings:', mergedEvents);
         }, (error) => {
           console.error('Error loading calendar events:', error);
+          // Still show monthly meetings even if Firebase fails
+          generateMonthlyMeetingsOnly();
           setIsLoading(false);
         });
     }
@@ -138,9 +267,28 @@ const CalendarComponent = ({
     }
   };
 
+  // Function to calculate the 2nd Monday of a given month
+  const getSecondMonday = (year, month) => {
+    const date = new Date(year, month, 1);
+    
+    // Find the first Monday
+    while (date.getDay() !== 1) {
+      date.setDate(date.getDate() + 1);
+    }
+    
+    // Add 7 days to get the second Monday
+    date.setDate(date.getDate() + 7);
+    
+    return date;
+  };
+
+
   // Create marked dates for calendar display
   const getMarkedDates = () => {
     const marked = {};
+    
+    console.log('getMarkedDates: events object has', Object.keys(events).length, 'dates');
+    console.log('getMarkedDates: events object:', events);
     
     Object.keys(events).forEach(date => {
       marked[date] = {
@@ -151,6 +299,7 @@ const CalendarComponent = ({
       };
     });
 
+    console.log('getMarkedDates: marked dates:', marked);
     return marked;
   };
 
@@ -192,6 +341,21 @@ const CalendarComponent = ({
     return userRole === 'leadman' || userRole === 'admin';
   };
 
+  const handleEventPress = (event) => {
+    setSelectedEvent({ ...event, date: selectedDate });
+    setShowEventModal(false);
+    setShowEventInfo(true);
+    
+    if (onEventPress) {
+      onEventPress(event);
+    }
+  };
+
+  const handleEventRSVP = (event, rsvpStatus) => {
+    console.log('RSVP updated:', event.title, rsvpStatus);
+    // TODO: Update Firebase with RSVP status
+  };
+
   const renderEventModal = () => (
     <Modal
       visible={showEventModal}
@@ -217,7 +381,7 @@ const CalendarComponent = ({
             <TouchableOpacity
               key={event.id}
               style={[styles.eventCard, { borderLeftColor: getEventTypeColor(event.type) }]}
-              onPress={() => onEventPress && onEventPress(event)}
+              onPress={() => handleEventPress(event)}
             >
               <View style={styles.eventHeader}>
                 <Ionicons 
@@ -327,7 +491,7 @@ const CalendarComponent = ({
         enableSwipeMonths={true}
         hideExtraDays={true}
         disableMonthChange={false}
-        firstDay={1} // Monday first
+        firstDay={0} // Sunday first
         hideDayNames={false}
         showWeekNumbers={false}
         disableArrowLeft={false}
@@ -342,6 +506,14 @@ const CalendarComponent = ({
       </View>
 
       {renderEventModal()}
+      
+      {/* Event Info Screen */}
+      <EventInfoScreen
+        event={selectedEvent}
+        visible={showEventInfo}
+        onClose={() => setShowEventInfo(false)}
+        onRSVP={handleEventRSVP}
+      />
     </View>
   );
 };

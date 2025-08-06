@@ -36,16 +36,19 @@ const TabNavigator = () => {
   const shouldShowTab = (tabName) => {
     switch (tabName) {
       case 'Guests':
-        // All authenticated users can see guest information
+        // All users (including guests) can see guest information
         return true;
       case 'Members':
         // Level 1+ (Candidates, Initiates, Members, Leadmen) can view member directory
+        // Guests (level 0) cannot access member directory
         return userSecurityLevel >= 1;
       case 'Leadmen':
         // Level 3+ (Leadmen roles) can access leadership functions
+        // Guests (level 0) cannot access leadmen functions
         return hasSecurityLevel(userRole, 3);
       case 'Admin':
         // Level 4+ (Governor, Historian) or Sudo Admin for full administration
+        // Guests (level 0) cannot access admin functions
         return hasSecurityLevel(userRole, 4) || userRole === HANGAR_ROLES.SUDO_ADMIN;
       case 'Profile':
         // All authenticated users have access to their profile

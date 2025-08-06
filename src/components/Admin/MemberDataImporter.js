@@ -23,7 +23,8 @@ import {
   ScrollView,
   Alert,
   TextInput,
-  ActivityIndicator
+  ActivityIndicator,
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
@@ -37,6 +38,7 @@ import {
   SAMPLE_ROSTER_DATA 
 } from '../../utils/seedMemberData';
 import { processORLQBRoster } from '../../utils/processORLQBRoster';
+import { runDebugTests, testFirebaseConnection } from '../../utils/debugFirebaseImport';
 
 const MemberDataImporter = ({ visible, onClose }) => {
   const { user, userRole } = useAuth();
@@ -47,25 +49,40 @@ const MemberDataImporter = ({ visible, onClose }) => {
   const [showRoleAssignment, setShowRoleAssignment] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
   const [importStats, setImportStats] = useState(null);
+  const [debugResults, setDebugResults] = useState(null);
 
   const handleJsonInput = () => {
     try {
+      console.log('=== JSON Input Debug ===');
+      
       if (!jsonInput.trim()) {
         Alert.alert('Error', 'Please paste the ORLQB roster JSON data');
         return;
       }
 
+      console.log('JSON input length:', jsonInput.length);
+      console.log('JSON input preview:', jsonInput.substring(0, 200) + '...');
+
       const parsedData = JSON.parse(jsonInput);
+      console.log('JSON parsed successfully');
+      console.log('Parsed data keys:', Object.keys(parsedData));
       
       if (!parsedData.members || !Array.isArray(parsedData.members)) {
+        console.error('Invalid data structure:', { 
+          hasMembers: !!parsedData.members, 
+          isArray: Array.isArray(parsedData.members) 
+        });
         Alert.alert('Error', 'Invalid roster format. Expected JSON with members array.');
         return;
       }
 
+      console.log('Members array length:', parsedData.members.length);
       setRosterData(parsedData);
       
       // Process data for preview
+      console.log('Processing roster data...');
       const processed = processORLQBRoster(parsedData);
+      console.log('Roster processed successfully:', processed.statistics);
       setProcessedData(processed);
       
       Alert.alert(
@@ -75,6 +92,7 @@ const MemberDataImporter = ({ visible, onClose }) => {
       );
       
     } catch (error) {
+      console.error('JSON parsing failed:', error);
       Alert.alert('Error', `Failed to parse JSON data: ${error.message}`);
     }
   };
@@ -215,6 +233,48 @@ const MemberDataImporter = ({ visible, onClose }) => {
       }
     } catch (error) {
       Alert.alert('Clear Error', error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDebugTests = async () => {
+    setIsProcessing(true);
+    setDebugResults(null);
+    
+    try {
+      console.log('Running debug tests...');
+      const results = await runDebugTests(rosterData);
+      setDebugResults(results);
+      
+      const connectionStatus = results.connectionTest?.success ? '✅' : '❌';
+      const testUserStatus = results.testUserCreation?.success ? '✅' : '❌';
+      
+      Alert.alert(
+        'Debug Test Results',
+        `Firebase Connection: ${connectionStatus}\nTest User Creation: ${testUserStatus}\n\nCheck console for detailed results.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      Alert.alert('Debug Test Error', error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setIsProcessing(true);
+    
+    try {
+      const result = await testFirebaseConnection();
+      
+      if (result.success) {
+        Alert.alert('Connection Test', 'Firebase connection is working correctly!');
+      } else {
+        Alert.alert('Connection Failed', result.error || 'Unknown error');
+      }
+    } catch (error) {
+      Alert.alert('Connection Error', error.message);
     } finally {
       setIsProcessing(false);
     }
@@ -410,6 +470,31 @@ const MemberDataImporter = ({ visible, onClose }) => {
             </View>
           </View>
 
+          {/* Debug Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>4. Debug & Testing</Text>
+            
+            <View style={styles.buttonRow}>
+              <TouchableOpacity 
+                style={[styles.button, styles.debugButton]}
+                onPress={handleTestConnection}
+                disabled={isProcessing}
+              >
+                <Ionicons name="wifi-outline" size={16} color="white" />
+                <Text style={styles.buttonText}>Test Connection</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.button, styles.debugButton]}
+                onPress={handleDebugTests}
+                disabled={isProcessing}
+              >
+                <Ionicons name="bug-outline" size={16} color="white" />
+                <Text style={styles.buttonText}>Run Debug Tests</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           {/* Import Statistics */}
           {importStats && (
             <View style={styles.section}>
@@ -507,6 +592,9 @@ const styles = StyleSheet.create({
   },
   dangerButton: {
     backgroundColor: '#f04141',
+  },
+  debugButton: {
+    backgroundColor: '#7044ff',
   },
   disabledButton: {
     backgroundColor: '#ccc',

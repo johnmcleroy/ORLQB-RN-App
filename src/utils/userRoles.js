@@ -119,10 +119,16 @@ export const isSudoAdmin = (email) => {
  * Get user role from Firestore or determine from email patterns
  */
 export const getUserRole = async (user) => {
-  if (!user || !user.email) return HANGAR_ROLES.GUEST;
+  if (!user || !user.email) {
+    console.log('getUserRole: No user or email provided');
+    return HANGAR_ROLES.GUEST;
+  }
+
+  console.log(`getUserRole: Checking role for user ${user.email} (UID: ${user.uid})`);
 
   // Check if user is hardcoded sudo admin
   if (isSudoAdmin(user.email)) {
+    console.log(`getUserRole: User ${user.email} is hardcoded sudo admin`);
     return HANGAR_ROLES.SUDO_ADMIN;
   }
 
@@ -132,14 +138,30 @@ export const getUserRole = async (user) => {
       const { doc, getDoc } = require('firebase/firestore');
       const userDoc = await getDoc(doc(firestore(), 'users', user.uid));
       
+      console.log(`getUserRole: Firestore lookup for ${user.email} - Document exists: ${userDoc.exists()}`);
+      
       if (userDoc.exists()) {
-        return userDoc.data().role || HANGAR_ROLES.GUEST;
+        const userData = userDoc.data();
+        const role = userData.role || HANGAR_ROLES.GUEST;
+        console.log(`getUserRole: Found Firestore role for ${user.email}: ${role}`);
+        console.log(`getUserRole: User document data:`, userData);
+        return role;
+      } else {
+        console.log(`getUserRole: No Firestore document found for ${user.email} (${user.uid})`);
       }
     } else {
       const userDoc = await firestore().collection('users').doc(user.uid).get();
       
+      console.log(`getUserRole: Native Firestore lookup for ${user.email} - Document exists: ${userDoc.exists}`);
+      
       if (userDoc.exists) {
-        return userDoc.data().role || HANGAR_ROLES.GUEST;
+        const userData = userDoc.data();
+        const role = userData.role || HANGAR_ROLES.GUEST;
+        console.log(`getUserRole: Found native Firestore role for ${user.email}: ${role}`);
+        console.log(`getUserRole: User document data:`, userData);
+        return role;
+      } else {
+        console.log(`getUserRole: No native Firestore document found for ${user.email} (${user.uid})`);
       }
     }
 
@@ -163,7 +185,8 @@ export const getUserRole = async (user) => {
       return HANGAR_ROLES.CANDIDATE;
     } else if (email.includes('initiate')) {
       return HANGAR_ROLES.INITIATE;
-    } else if (email.includes('@orlqb.org') || email === 'test@example.com') {
+    } else if (email.includes('@orlqb.org') || email === 'test@example.com' || email === 'test@test.com') {
+      console.log(`getUserRole: Email pattern match for ${email} - assigning MEMBER role`);
       return HANGAR_ROLES.MEMBER;
     }
     
@@ -422,6 +445,86 @@ export const getRoleIcon = (role) => {
     case HANGAR_ROLES.GUEST: return 'eye-outline';
     
     default: return 'help-outline';
+  }
+};
+
+/**
+ * Create a specific user document in Firestore (admin function)
+ */
+export const createSpecificUserDocument = async (currentUser, userData) => {
+  if (!currentUser) return { success: false, error: 'Not authenticated' };
+
+  // Only sudo admins can create specific user documents
+  const currentUserRole = await getUserRole(currentUser);
+  if (currentUserRole !== HANGAR_ROLES.SUDO_ADMIN) {
+    return { success: false, error: 'Insufficient permissions' };
+  }
+
+  if (!userData.email || !userData.uid || !userData.role) {
+    return { success: false, error: 'Missing required user data (email, uid, role)' };
+  }
+
+  try {
+    const userProfile = {
+      uid: userData.uid,
+      email: userData.email,
+      role: userData.role,
+      displayName: userData.displayName || userData.email.split('@')[0],
+      hangar: 'Orlando',
+      securityLevel: SECURITY_LEVELS[userData.role] || 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: currentUser.email,
+      isActive: true,
+      lastLogin: new Date().toISOString()
+    };
+
+    if (Platform.OS === 'web') {
+      const { doc, setDoc } = require('firebase/firestore');
+      await setDoc(doc(firestore(), 'users', userData.uid), userProfile, { merge: true });
+    } else {
+      await firestore().collection('users').doc(userData.uid).set(userProfile, { merge: true });
+    }
+
+    console.log(`✅ User document created: ${userData.email} as ${userData.role}`);
+    return { success: true, userProfile };
+  } catch (error) {
+    console.error('Error creating user document:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Initialize test user document for test@test.com
+ */
+export const initializeTestUser = async (user) => {
+  if (!user || user.email !== 'test@test.com') return;
+
+  try {
+    // Create test user profile as SUDO_ADMIN for testing
+    const testUserProfile = {
+      uid: user.uid,
+      email: user.email,
+      role: HANGAR_ROLES.SUDO_ADMIN, // Make test user sudo admin for testing
+      displayName: 'Test Administrator',
+      hangar: 'Orlando',
+      securityLevel: SECURITY_LEVELS[HANGAR_ROLES.SUDO_ADMIN],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isActive: true,
+      lastLogin: new Date().toISOString()
+    };
+
+    if (Platform.OS === 'web') {
+      const { doc, setDoc } = require('firebase/firestore');
+      await setDoc(doc(firestore(), 'users', user.uid), testUserProfile, { merge: true });
+    } else {
+      await firestore().collection('users').doc(user.uid).set(testUserProfile, { merge: true });
+    }
+
+    console.log(`✅ Test user initialized: ${user.email} as ${HANGAR_ROLES.SUDO_ADMIN}`);
+  } catch (error) {
+    console.error('Error initializing test user:', error);
   }
 };
 

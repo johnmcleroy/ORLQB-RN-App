@@ -1,0 +1,54 @@
+{
+  "metadata": {
+    "title": "ORL Sign In Roster",
+    "extractedDate": "August 5, 2025",
+    "totalRecords": 123,
+    "statusDistribution": {
+      "A": 69,
+      "I": 47,
+      "U": 7
+    },
+    "fields": {
+      "status": "Member status (A=Active, I=Inactive, U=Unknown)",
+      "qbNumber": "QB membership number",
+      "name": "Full name (Last, First format)",
+      "nickname": "Nickname or preferred name",
+      "Street": "Street address",
+      "city": "City of residence",
+      "state": "State of residence",
+      "email": "Email address",
+      "email2": "Secondary email address (if applicable)",
+      "phone": "Primary phone number",
+      "phone2": "Secondary phone number (if applicable)",
+      "beamExpires": "Beam magazine expiration status/date",
+      "emergencyContact": "Emergency contact name",
+      "emergencyPhone": "Emergency contact phone number",
+      "emergencyEmail": "Emergency contact email address",
+      "emerRelationship": "Relationship to emergency contact",
+      "DateOfBirth": "Date of birth (MM/DD/YYYY)",
+      "inductingHangar": "Hanger where the member was inducted",
+      "inductingDate": "Date of induction into the ORL (MM/DD/YYYY)",
+      "certificateNumber": "Certificate number (if applicable)",
+      "certifiedPIC/SoloHours": "Total hours as Pilot in Command or solo (if applicable)",
+      "soloDate": "Date of first solo flight (if applicable, MM/DD/YYYY)",
+      "soloLocation": "Location of first solo flight (if applicable)",
+      "sponsor1": "First sponsor's name (Last, First qbNumber)",
+      "sponsor2": "Second sponsor's name (Last, First qbNumber)",
+      "sponsor3": "Third sponsor's name (Last, First qbNumber)",
+      "sponsor4": "Fourth sponsor's name (Last, First qbNumber)",
+      "sponsor5": "Fifth sponsor's name (Last, First qbNumber)",
+      "goneWest": "Date the member went west (if applicable, MM/DD/YYYY)"
+    }
+  },
+  "members": [
+    {
+      "status": "A",
+      "qbNumber": "23006",
+      "name": "Amlund, David",
+      "nickname": "Norse",
+      "email": "dlamlund@yahoo.com",
+      "phone": "407-718-2425 (c)",
+      "beamExpires": "Expired"
+    }
+  ]
+}

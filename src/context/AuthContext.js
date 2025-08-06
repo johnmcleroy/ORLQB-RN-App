@@ -9,7 +9,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { auth } from '../services/firebase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getUserRole, createUserProfile, initializeSudoAdmin, HANGAR_ROLES } from '../utils/userRoles';
+import { getUserRole, createUserProfile, initializeSudoAdmin, initializeTestUser, HANGAR_ROLES } from '../utils/userRoles';
 
 // Create the context
 const AuthContext = createContext({});
@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(HANGAR_ROLES.GUEST);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasSeenIntroduction, setHasSeenIntroduction] = useState(false);
+  const [hasSeenIntro, setHasSeenIntro] = useState(false);
 
   /**
    * useEffect replaces Angular's OnInit lifecycle
@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
    */
   useEffect(() => {
     // Load introduction status from storage
-    loadIntroductionStatus();
+    loadIntroStatus();
 
     // Firebase auth state listener (platform-specific)
     let unsubscribe;
@@ -41,7 +41,8 @@ export const AuthProvider = ({ children }) => {
     if (Platform.OS === 'web') {
       // Web Firebase SDK v9+ uses onAuthStateChanged differently
       const { onAuthStateChanged } = require('firebase/auth');
-      unsubscribe = onAuthStateChanged(auth(), async (firebaseUser) => {
+      const authInstance = auth();
+      unsubscribe = onAuthStateChanged(authInstance, async (firebaseUser) => {
         console.log('Web auth state changed:', firebaseUser);
         await handleUserChange(firebaseUser);
       });
@@ -67,6 +68,9 @@ export const AuthProvider = ({ children }) => {
         // Initialize sudo admin if needed
         await initializeSudoAdmin(firebaseUser);
         
+        // Initialize test user if needed
+        await initializeTestUser(firebaseUser);
+        
         // Get user role
         const role = await getUserRole(firebaseUser);
         setUserRole(role);
@@ -91,12 +95,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Load introduction status from local storage
-  const loadIntroductionStatus = async () => {
+  const loadIntroStatus = async () => {
     try {
-      const status = await AsyncStorage.getItem('hasSeenIntroduction');
-      setHasSeenIntroduction(status === 'true');
+      const status = await AsyncStorage.getItem('intro_completed');
+      console.log('AuthContext: loadIntroStatus - AsyncStorage value:', status);
+      setHasSeenIntro(status === 'true');
+      console.log('AuthContext: setHasSeenIntro to:', status === 'true');
     } catch (error) {
-      console.log('Error loading introduction status:', error);
+      console.log('Error loading intro status:', error);
     }
   };
 
@@ -108,7 +114,8 @@ export const AuthProvider = ({ children }) => {
       if (Platform.OS === 'web') {
         // Web Firebase SDK v9+
         const { signInWithEmailAndPassword } = require('firebase/auth');
-        result = await signInWithEmailAndPassword(auth(), email, password);
+        const authInstance = auth();
+        result = await signInWithEmailAndPassword(authInstance, email, password);
         console.log('Web sign in successful:', result.user);
       } else {
         // React Native Firebase SDK
@@ -164,12 +171,21 @@ export const AuthProvider = ({ children }) => {
     try {
       if (Platform.OS === 'web') {
         const { signOut: firebaseSignOut } = require('firebase/auth');
-        await firebaseSignOut(auth());
+        const authInstance = auth();
+        await firebaseSignOut(authInstance);
+        console.log('Web sign out successful');
       } else {
         await auth().signOut();
+        console.log('Native sign out successful');
       }
+      
+      // Clear local state immediately
+      setUser(null);
+      setUserRole(HANGAR_ROLES.GUEST);
+      
       return { success: true };
     } catch (error) {
+      console.error('Sign out error:', error);
       return { success: false, error: error.message };
     }
   };
@@ -179,7 +195,8 @@ export const AuthProvider = ({ children }) => {
     try {
       if (Platform.OS === 'web') {
         const { sendPasswordResetEmail } = require('firebase/auth');
-        await sendPasswordResetEmail(auth(), email);
+        const authInstance = auth();
+        await sendPasswordResetEmail(authInstance, email);
       } else {
         await auth().sendPasswordResetEmail(email);
       }
@@ -203,12 +220,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Update introduction status
-  const updateHasSeenIntroduction = async (status) => {
+  const updateHasSeenIntro = async (status) => {
     try {
-      await AsyncStorage.setItem('hasSeenIntroduction', status.toString());
-      setHasSeenIntroduction(status);
+      await AsyncStorage.setItem('intro_completed', status.toString());
+      setHasSeenIntro(status);
     } catch (error) {
-      console.log('Error saving introduction status:', error);
+      console.log('Error saving intro status:', error);
     }
   };
 
@@ -217,12 +234,13 @@ export const AuthProvider = ({ children }) => {
     user,
     userRole,
     isLoading,
-    hasSeenIntroduction,
+    hasSeenIntro,
+    setHasSeenIntro,
     signIn,
     signUp,
     signOut,
     resetPassword,
-    updateHasSeenIntroduction,
+    updateHasSeenIntro,
   };
 
   return (
