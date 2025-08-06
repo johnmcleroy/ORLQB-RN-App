@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "230654055784",
+    "firebase_url": "https://orlqb.firebaseio.com",
+    "project_id": "firebase-orlqb",
+    "storage_bucket": "firebase-orlqb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:230654055784:android:ad58ed108b8e4c2fe8f2dd",
+        "android_client_info": {
+          "package_name": "com.anonymous.RN_ORLQB_APP"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "230654055784-abcdefghijklmnop.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqCWig0L0spfRpBUsL_VsgwxwSqtKzIPI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "230654055784-abcdefghijklmnop.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

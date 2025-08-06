@@ -1,0 +1,44 @@
+# Expo
+.expo/
+dist/
+web-build/
+
+# Node
+node_modules/
+npm-debug.*
+yarn-error.log
+
+# OS
+.DS_Store
+*.p12
+*.key
+*.mobileprovision
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Logs
+logs
+*.log
+
+# Environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Firebase
+.firebase/
+
+# Android
+android/
+!android/app/src/main/res/
+
+# iOS
+ios/
+!ios/App/App/
