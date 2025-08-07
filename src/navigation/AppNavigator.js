@@ -8,7 +8,6 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Platform } from 'react-native';
 
 import { useAuth } from '../context/AuthContext';
 import LoadingScreen from '../screens/LoadingScreen';
@@ -26,40 +25,11 @@ import MemberNotificationsScreen from '../screens/members/MemberNotificationsScr
 
 const Stack = createStackNavigator();
 
-// Web linking configuration for proper browser history handling
-const linking = Platform.OS === 'web' ? {
-  prefixes: ['https://orlqb.org', 'http://localhost:19006'],
-  config: {
-    screens: {
-      Intro: '',
-      MainApp: {
-        path: '/app',
-        screens: {
-          Guests: 'guests',
-          Members: 'members', 
-          Leadmen: 'leadmen',
-          Admin: 'admin',
-          Profile: 'profile',
-        },
-        initialRouteName: 'Guests', // Default to Guests tab for authenticated users
-      },
-      Login: 'login',
-      SignUp: 'signup',
-      MemberDirectory: 'members/directory',
-      MeetingMinutes: 'members/minutes',
-      MemberResources: 'members/resources',
-      EventSignIn: 'members/events',
-      MemberNotifications: 'members/notifications',
-    },
-  },
-} : undefined;
-
 /**
  * AppNavigator Component
  * 
  * This is the main navigation component that decides which screens to show
  * based on authentication state. Similar to Angular guards but simpler.
- * Now includes proper web history handling and defaults authenticated users to Guests tab.
  */
 const AppNavigator = () => {
   const { user, isLoading, hasSeenIntro, setHasSeenIntro } = useAuth();
@@ -75,11 +45,8 @@ const AppNavigator = () => {
   }
 
   return (
-    <NavigationContainer linking={linking}>
-      <Stack.Navigator 
-        screenOptions={{ headerShown: false }}
-        initialRouteName={user ? "MainApp" : (hasSeenIntro ? "Login" : "Intro")}
-      >
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!hasSeenIntro ? (
           // First time user - show intro screen
           <Stack.Screen name="Intro">
