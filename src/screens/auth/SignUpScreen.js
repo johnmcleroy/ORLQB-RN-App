@@ -120,11 +120,11 @@ const SignUpScreen = ({ navigation }) => {
               <View style={styles.logoContainer}>
                 <Ionicons name="airplane" size={48} color="#FFD700" />
                 <Text style={styles.logoText}>ORLQB</Text>
-                <Text style={styles.logoSubtext}>Quebec Bravo</Text>
+                <Text style={styles.logoSubtext}>Orlando Hangar of QB's</Text>
               </View>
               <Text style={styles.title}>Join ORLQB</Text>
               <Text style={styles.subtitle}>
-                Orlando Leadership - Quebec Bravo Aviation Community
+                Orlando Hangar of Quiet Birdmen Registration
               </Text>
             </View>
 
@@ -187,7 +187,7 @@ const SignUpScreen = ({ navigation }) => {
                 <Ionicons name="people-outline" size={20} color="#FFD700" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Sponsor Name (if any)"
+                  placeholder="Sponsor Name"
                   placeholderTextColor="#999"
                   value={sponsor}
                   onChangeText={setSponsor}
@@ -239,10 +239,10 @@ const SignUpScreen = ({ navigation }) => {
 
               <View style={styles.disclaimer}>
                 <Text style={styles.disclaimerText}>
-                  * Required fields. Registration is subject to ORLQB approval.
+                  * Required fields. Registration is subject to Sponsor approval.
                 </Text>
                 <Text style={styles.disclaimerText}>
-                  You will be contacted by a member representative for next steps.
+                  You will be contacted by a Leadman for next steps.
                 </Text>
               </View>
 
