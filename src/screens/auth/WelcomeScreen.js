@@ -21,7 +21,7 @@ const WelcomeScreen = ({ navigation }) => {
       <View style={styles.content}>
         <Text style={styles.title}>Welcome to ORLQB</Text>
         <Text style={styles.subtitle}>
-          Ye Ancient and Secret Order of Quiet Birdmen
+          Ye Ancient and Secret Order
         </Text>
         
         <View style={styles.features}>

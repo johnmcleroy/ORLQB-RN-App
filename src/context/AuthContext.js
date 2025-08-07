@@ -156,12 +156,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Sign up function
-  const signUp = async (email, password) => {
+  // Sign up function with member data
+  const signUp = async (email, password, memberData = {}) => {
     try {
-      const result = await auth().createUserWithEmailAndPassword(email, password);
+      let result;
+      
+      if (Platform.OS === 'web') {
+        const { createUserWithEmailAndPassword } = require('firebase/auth');
+        const authInstance = auth();
+        result = await createUserWithEmailAndPassword(authInstance, email, password);
+      } else {
+        result = await auth().createUserWithEmailAndPassword(email, password);
+      }
+
+      // Create user profile with additional member data
+      if (result.user) {
+        const profileData = {
+          ...memberData,
+          uid: result.user.uid,
+          email: result.user.email,
+          createdAt: new Date().toISOString(),
+          role: 'guest', // Default role until approved
+          status: memberData.status || 'U' // Unknown until approved
+        };
+
+        console.log('Creating user profile with data:', profileData);
+        await createUserProfile(result.user.uid, profileData);
+      }
+
       return { success: true, user: result.user };
     } catch (error) {
+      console.error('SignUp error:', error);
       return { success: false, error: error.message };
     }
   };
