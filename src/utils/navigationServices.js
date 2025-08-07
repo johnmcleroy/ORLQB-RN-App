@@ -18,6 +18,12 @@ import * as Location from 'expo-location';
 
 // ORLQB Default Locations (frequently used venues)
 export const ORLQB_LOCATIONS = {
+    'Goldenrod Civic Club': {
+    address: 'Goldenrod Civic Club, 4763 N. Palmetto Avenue, Winter Park, FL 32792',
+    latitude: 28.6082,
+    longitude: -81.2879,
+    name: 'Goldenrod Civic Club'
+  },
   'Orlando QB Hangar': {
     address: 'Orlando Executive Airport, Orlando, FL 32803',
     latitude: 28.5449,

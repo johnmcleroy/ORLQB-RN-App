@@ -26,7 +26,7 @@ import { firestore } from '../services/firebase';
 // ORLQB Hangar Role Constants
 export const HANGAR_ROLES = {
   // System Administration (Technical)
-  SUDO_ADMIN: 'sudo_admin',
+  SUDO_ADMIN: 'sudo_admin', // Level 5 - Technical system administrator (outside hierarchy)
   
   // Hangar Leadership (Leadmen) - Level 4
   GOVERNOR: 'governor',
@@ -51,11 +51,11 @@ export const SECURITY_LEVELS = {
   [HANGAR_ROLES.CANDIDATE]: 1,          // Prospective members
   [HANGAR_ROLES.INITIATE]: 1,           // New initiates
   [HANGAR_ROLES.MEMBER]: 2,             // Full active members
-  [HANGAR_ROLES.ASSISTANT_GOVERNOR]: 3,  // Deputy leadership
+  [HANGAR_ROLES.ASSISTANT_GOVERNOR]: 3,  // Deputy Leadman
   [HANGAR_ROLES.KEYMAN]: 3,             // Key holder
-  [HANGAR_ROLES.ASSISTANT_KEYMAN]: 3,   // Deputy key holder
-  [HANGAR_ROLES.BEAM_MAN]: 3,           // Ceremonial oversight
-  [HANGAR_ROLES.GOVERNOR]: 4,           // Hangar commander
+  [HANGAR_ROLES.ASSISTANT_KEYMAN]: 3,   // Deputy Keyman
+  [HANGAR_ROLES.BEAM_MAN]: 3,           // Ceremonial reporting and oversight
+  [HANGAR_ROLES.GOVERNOR]: 4,           // Hangar Commander
   [HANGAR_ROLES.HISTORIAN]: 4,          // Historical keeper
   [HANGAR_ROLES.SUDO_ADMIN]: 5          // Technical admin (outside hierarchy)
 };

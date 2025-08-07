@@ -70,7 +70,8 @@ const GuestsScreen = ({ navigation }) => {
       <View style={styles.header}>
         <Text style={styles.title}>Guest Information</Text>
         <Text style={styles.subtitle}>
-          Welcome to Ye Ancient and Secret Order of Quiet Birdmen
+          Welcome to Ye Ancient and Secret Order of Quiet Birdmen. What goes on here, stays here.
+          Please explore the sections below to learn more about our traditions and expectations for guests.
         </Text>
       </View>
 
@@ -116,7 +117,7 @@ const GuestsScreen = ({ navigation }) => {
             <View style={styles.sectionText}>
               <Text style={styles.sectionTitle}>Notify Attendance</Text>
               <Text style={styles.sectionDescription}>
-                Let Leadmen know you'll attend or call-in to the next meeting
+                Let us know you'll attend or call-in to the next meeting
               </Text>
             </View>
             <Ionicons 
@@ -137,7 +138,7 @@ const GuestsScreen = ({ navigation }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Notify Leadmen of Attendance</Text>
+            <Text style={styles.modalTitle}>Attendance Notification</Text>
             <TouchableOpacity onPress={() => setShowAttendanceModal(false)}>
               <Ionicons name="close-outline" size={24} color="#333" />
             </TouchableOpacity>
@@ -145,7 +146,7 @@ const GuestsScreen = ({ navigation }) => {
 
           <View style={styles.modalContent}>
             <Text style={styles.modalSubtitle}>
-              Choose how you plan to participate in the next ORLQB meeting:
+              Do you plan to attend the next ORLQB meeting:
             </Text>
 
             <TouchableOpacity
@@ -156,20 +157,7 @@ const GuestsScreen = ({ navigation }) => {
               <View style={styles.optionText}>
                 <Text style={styles.optionTitle}>I'll Attend</Text>
                 <Text style={styles.optionDescription}>
-                  I plan to be physically present at the meeting
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.attendanceOption, { backgroundColor: '#3880ff' }]}
-              onPress={() => sendAttendanceNotification('call-in')}
-            >
-              <Ionicons name="call-outline" size={24} color="white" />
-              <View style={styles.optionText}>
-                <Text style={styles.optionTitle}>I'll Call-In</Text>
-                <Text style={styles.optionDescription}>
-                  I plan to participate via phone/video call
+                  I plan to be present at the meeting
                 </Text>
               </View>
             </TouchableOpacity>
@@ -182,7 +170,7 @@ const GuestsScreen = ({ navigation }) => {
               <View style={styles.optionText}>
                 <Text style={styles.optionTitle}>Cannot Attend</Text>
                 <Text style={styles.optionDescription}>
-                  I'm unable to participate in the next meeting
+                  Please mark me as a Call-in.
                 </Text>
               </View>
             </TouchableOpacity>
