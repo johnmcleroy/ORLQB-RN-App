@@ -121,19 +121,20 @@ const IntroScreen = ({ onComplete }) => {
           <View style={styles.logoContainer}>
             {/* Future: Replace with actual ORLQB logo image */}
             {/* <Image source={ORLQB_IMAGES.ORLQB_LOGO} style={styles.logoImage} /> */}
+            <Image source={ORLQB_IMAGES.ORLQB_LOGO} style={styles.logoImage} />
             <Text style={styles.logoText}>ORLQB</Text>
-            <Text style={styles.tagline}>Orlando Leadership Management</Text>
-            <Text style={styles.qbText}>Quebec Bravo</Text>
+            <Text style={styles.tagline}>Orlando Hangar of Quiet Birdmen</Text>
+            <Text style={styles.qbText}>QB's forever, Brothers for life</Text>
           </View>
 
           {/* Welcome Message */}
           <View style={styles.messageContainer}>
             <Text style={styles.welcomeText}>Welcome to the</Text>
-            <Text style={styles.appName}>ORLQB Leadership App</Text>
+            <Text style={styles.appName}>ORLQB Hangar Mobile App</Text>
             <Text style={styles.description}>
-              Connecting Orlando's aviation leaders{'\n'}
-              Building tomorrow's pilots today{'\n'}
-              Orlando Executive Airport Hangar
+              Connecting Pilots and Goodfellows{'\n'}
+              Building tomorrow's ORLQB's today{'\n'}
+              Enrichening our Brotherhood
             </Text>
           </View>
 
