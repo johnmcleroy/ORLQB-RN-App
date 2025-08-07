@@ -64,6 +64,7 @@ const TabNavigator = () => {
    */
   return (
     <Tab.Navigator
+      initialRouteName="Guests" // Always start on Guests tab for authenticated users
       screenOptions={({ route }) => ({
         // Tab bar icon configuration
         tabBarIcon: ({ focused, color, size }) => {
