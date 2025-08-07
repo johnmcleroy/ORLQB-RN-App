@@ -36,13 +36,12 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// ORLQB Images (will be populated with actual assets)
+// ORLQB Images - using import-based approach for better web compatibility
+import { ORLQBPhotos, QBGraphics } from '../../constants/images';
+
 const ORLQB_IMAGES = {
-  // Fallback to Unsplash aviation image until ORLQB assets are added
-  //INTRO_BACKGROUND: { uri: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80' },
-  // Future: Local ORLQB assets
-  INTRO_BACKGROUND: require('../../assets/images/ORLQB_Photos/Flabob_1.jpg'),
-  ORLQB_LOGO: require('../../assets/images/QB_Graphics/Header_Wing.png'), // Placeholder
+  INTRO_BACKGROUND: ORLQBPhotos.INTRO_BACKGROUND,
+  ORLQB_LOGO: QBGraphics.ORLQB_LOGO_LIGHT,
 };
 
 const { width, height } = Dimensions.get('window');
