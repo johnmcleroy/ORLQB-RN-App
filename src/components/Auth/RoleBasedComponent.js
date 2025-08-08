@@ -26,7 +26,7 @@
  * </RoleBasedComponent>
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
@@ -36,7 +36,8 @@ import {
   getRoleDisplayName, 
   getRoleColor,
   getRoleIcon,
-  HANGAR_ROLES 
+  HANGAR_ROLES,
+  logVisibilityEvent 
 } from '../../utils/userRoles';
 
 const RoleBasedComponent = ({
@@ -49,7 +50,9 @@ const RoleBasedComponent = ({
   fallbackComponent = null,          // Custom component when access denied
   showAccessDenied = true,           // Show default access denied message
   hideWhenDenied = false,            // Hide completely when access denied
-  debugMode = false                  // Show debug info
+  debugMode = false,                 // Show debug info
+  componentName = 'Unknown Component', // Component name for monitoring
+  enableMonitoring = true            // Enable admin monitoring
 }) => {
   const { user, userRole } = useAuth();
 
@@ -62,65 +65,110 @@ const RoleBasedComponent = ({
       allowedRoles,
       deniedRoles,
       requireLeadman,
-      requireSeniorLeadership
+      requireSeniorLeadership,
+      componentName
     });
   }
 
+  // Log access attempt for admin monitoring
+  useEffect(() => {
+    if (enableMonitoring && user) {
+      logVisibilityEvent({
+        componentName,
+        userEmail: user.email,
+        userRole,
+        userLevel: SECURITY_LEVELS[userRole] || 0,
+        requiredLevel,
+        allowedRoles,
+        deniedRoles,
+        requireLeadman,
+        requireSeniorLeadership,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }, [user, userRole, componentName, enableMonitoring]);
+
+  const userSecurityLevel = SECURITY_LEVELS[userRole] || 0;
+  let accessDecision = { granted: true, reason: null };
+
   // Check if user is authenticated
   if (!user) {
+    accessDecision = { granted: false, reason: 'not_authenticated' };
+    
+    // Log the access decision
+    if (enableMonitoring) {
+      logVisibilityEvent({
+        componentName,
+        userEmail: 'anonymous',
+        userRole: 'anonymous',
+        userLevel: 0,
+        requiredLevel,
+        allowedRoles,
+        deniedRoles,
+        requireLeadman,
+        requireSeniorLeadership,
+        accessGranted: false,
+        accessReason: 'not_authenticated',
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     if (hideWhenDenied) return null;
     return fallbackComponent || (showAccessDenied ? <AuthenticationRequired /> : null);
   }
 
-  const userSecurityLevel = SECURITY_LEVELS[userRole] || 0;
-
   // Check specific denied roles first
   if (deniedRoles.length > 0 && deniedRoles.includes(userRole)) {
-    if (hideWhenDenied) return null;
-    return fallbackComponent || (showAccessDenied ? <AccessDenied reason="role_denied" userRole={userRole} /> : null);
+    accessDecision = { granted: false, reason: 'role_denied' };
   }
-
   // Check required security level
-  if (requiredLevel !== null && !hasSecurityLevel(userRole, requiredLevel)) {
-    if (hideWhenDenied) return null;
-    return fallbackComponent || (showAccessDenied ? 
-      <AccessDenied 
-        reason="insufficient_level" 
-        userRole={userRole} 
-        requiredLevel={requiredLevel}
-        userLevel={userSecurityLevel}
-      /> : null);
+  else if (requiredLevel !== null && !hasSecurityLevel(userRole, requiredLevel)) {
+    accessDecision = { granted: false, reason: 'insufficient_level' };
   }
-
   // Check specific allowed roles
-  if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
-    if (hideWhenDenied) return null;
-    return fallbackComponent || (showAccessDenied ? 
-      <AccessDenied 
-        reason="role_not_allowed" 
-        userRole={userRole} 
-        allowedRoles={allowedRoles}
-      /> : null);
+  else if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+    accessDecision = { granted: false, reason: 'role_not_allowed' };
   }
-
   // Check Leadman requirement (Level 3+)
-  if (requireLeadman && userSecurityLevel < 3 && userRole !== HANGAR_ROLES.SUDO_ADMIN) {
-    if (hideWhenDenied) return null;
-    return fallbackComponent || (showAccessDenied ? 
-      <AccessDenied 
-        reason="leadman_required" 
-        userRole={userRole}
-      /> : null);
+  else if (requireLeadman && userSecurityLevel < 3 && userRole !== HANGAR_ROLES.SUDO_ADMIN) {
+    accessDecision = { granted: false, reason: 'leadman_required' };
+  }
+  // Check Senior Leadership requirement (Level 4)
+  else if (requireSeniorLeadership && userSecurityLevel < 4 && userRole !== HANGAR_ROLES.SUDO_ADMIN) {
+    accessDecision = { granted: false, reason: 'senior_leadership_required' };
   }
 
-  // Check Senior Leadership requirement (Level 4)
-  if (requireSeniorLeadership && userSecurityLevel < 4 && userRole !== HANGAR_ROLES.SUDO_ADMIN) {
+  // Log the access decision for admin monitoring
+  if (enableMonitoring && user) {
+    logVisibilityEvent({
+      componentName,
+      userEmail: user.email,
+      userRole,
+      userLevel: userSecurityLevel,
+      requiredLevel,
+      allowedRoles,
+      deniedRoles,
+      requireLeadman,
+      requireSeniorLeadership,
+      accessGranted: accessDecision.granted,
+      accessReason: accessDecision.reason || 'access_granted',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Handle access denied cases
+  if (!accessDecision.granted) {
     if (hideWhenDenied) return null;
-    return fallbackComponent || (showAccessDenied ? 
-      <AccessDenied 
-        reason="senior_leadership_required" 
-        userRole={userRole}
-      /> : null);
+    
+    const accessDeniedProps = {
+      reason: accessDecision.reason,
+      userRole,
+      requiredLevel,
+      userLevel: userSecurityLevel,
+      allowedRoles
+    };
+    
+    return fallbackComponent || (showAccessDenied ? <AccessDenied {...accessDeniedProps} /> : null);
   }
 
   // Access granted - render children
@@ -188,62 +236,67 @@ const AccessDenied = ({ reason, userRole, requiredLevel, userLevel, allowedRoles
 // Convenience Components for Common Use Cases
 
 // Members Only (Level 2+)
-export const MembersOnly = ({ children, fallback, hideWhenDenied = false }) => (
+export const MembersOnly = ({ children, fallback, hideWhenDenied = false, componentName = 'MembersOnly Component' }) => (
   <RoleBasedComponent 
     requiredLevel={2} 
     fallbackComponent={fallback}
     hideWhenDenied={hideWhenDenied}
+    componentName={componentName}
   >
     {children}
   </RoleBasedComponent>
 );
 
 // Leadmen Only (Level 3+)
-export const LeadmenOnly = ({ children, fallback, hideWhenDenied = false }) => (
+export const LeadmenOnly = ({ children, fallback, hideWhenDenied = false, componentName = 'LeadmenOnly Component' }) => (
   <RoleBasedComponent 
     requireLeadman={true}
     fallbackComponent={fallback}
     hideWhenDenied={hideWhenDenied}
+    componentName={componentName}
   >
     {children}
   </RoleBasedComponent>
 );
 
 // Senior Leadership Only (Level 4)
-export const SeniorLeadershipOnly = ({ children, fallback, hideWhenDenied = false }) => (
+export const SeniorLeadershipOnly = ({ children, fallback, hideWhenDenied = false, componentName = 'SeniorLeadershipOnly Component' }) => (
   <RoleBasedComponent 
     requireSeniorLeadership={true}
     fallbackComponent={fallback}
     hideWhenDenied={hideWhenDenied}
+    componentName={componentName}
   >
     {children}
   </RoleBasedComponent>
 );
 
 // Governor Only
-export const GovernorOnly = ({ children, fallback, hideWhenDenied = false }) => (
+export const GovernorOnly = ({ children, fallback, hideWhenDenied = false, componentName = 'GovernorOnly Component' }) => (
   <RoleBasedComponent 
     allowedRoles={[HANGAR_ROLES.GOVERNOR, HANGAR_ROLES.SUDO_ADMIN]}
     fallbackComponent={fallback}
     hideWhenDenied={hideWhenDenied}
+    componentName={componentName}
   >
     {children}
   </RoleBasedComponent>
 );
 
 // Historian Only
-export const HistorianOnly = ({ children, fallback, hideWhenDenied = false }) => (
+export const HistorianOnly = ({ children, fallback, hideWhenDenied = false, componentName = 'HistorianOnly Component' }) => (
   <RoleBasedComponent 
     allowedRoles={[HANGAR_ROLES.HISTORIAN, HANGAR_ROLES.SUDO_ADMIN]}
     fallbackComponent={fallback}
     hideWhenDenied={hideWhenDenied}
+    componentName={componentName}
   >
     {children}
   </RoleBasedComponent>
 );
 
 // Keyman Only (including Assistant Keyman)
-export const KeymanOnly = ({ children, fallback, hideWhenDenied = false }) => (
+export const KeymanOnly = ({ children, fallback, hideWhenDenied = false, componentName = 'KeymanOnly Component' }) => (
   <RoleBasedComponent 
     allowedRoles={[
       HANGAR_ROLES.KEYMAN, 
@@ -252,17 +305,19 @@ export const KeymanOnly = ({ children, fallback, hideWhenDenied = false }) => (
     ]}
     fallbackComponent={fallback}
     hideWhenDenied={hideWhenDenied}
+    componentName={componentName}
   >
     {children}
   </RoleBasedComponent>
 );
 
 // System Admin Only
-export const SudoAdminOnly = ({ children, fallback, hideWhenDenied = false }) => (
+export const SudoAdminOnly = ({ children, fallback, hideWhenDenied = false, componentName = 'SudoAdminOnly Component' }) => (
   <RoleBasedComponent 
     allowedRoles={[HANGAR_ROLES.SUDO_ADMIN]}
     fallbackComponent={fallback}
     hideWhenDenied={hideWhenDenied}
+    componentName={componentName}
   >
     {children}
   </RoleBasedComponent>

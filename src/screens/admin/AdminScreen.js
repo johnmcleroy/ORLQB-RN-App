@@ -12,9 +12,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { EventManager, CalendarComponent, UserManager } from '../../components';
+import { EventManager, CalendarComponent, UserManager, VisibilityMonitor } from '../../components';
 import { useAuth } from '../../context/AuthContext';
-import { canManageSystem, getRoleDisplayName } from '../../utils/userRoles';
+import { canManageSystem, getRoleDisplayName, HANGAR_ROLES } from '../../utils/userRoles';
 
 const AdminScreen = ({ navigation }) => {
   const { userRole } = useAuth();
@@ -96,6 +96,8 @@ const AdminScreen = ({ navigation }) => {
         );
       case 'users':
         return <UserManager />;
+      case 'monitor':
+        return <VisibilityMonitor />;
       default:
         return (
           <ScrollView style={styles.sectionsContainer}>
@@ -235,22 +237,41 @@ const AdminScreen = ({ navigation }) => {
 
         {/* Sudo Admin Only: User Management Tab */}
         {canManageSystem(userRole) && (
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'users' && styles.activeTab]}
-            onPress={() => setActiveTab('users')}
-          >
-            <Ionicons 
-              name={activeTab === 'users' ? 'people' : 'people-outline'} 
-              size={18} 
-              color={activeTab === 'users' ? '#ff0000' : '#666'} 
-            />
-            <Text style={[
-              styles.tabText, 
-              activeTab === 'users' && { ...styles.activeTabText, color: '#ff0000' }
-            ]}>
-              👥 Users
-            </Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'users' && styles.activeTab]}
+              onPress={() => setActiveTab('users')}
+            >
+              <Ionicons 
+                name={activeTab === 'users' ? 'people' : 'people-outline'} 
+                size={18} 
+                color={activeTab === 'users' ? '#ff0000' : '#666'} 
+              />
+              <Text style={[
+                styles.tabText, 
+                activeTab === 'users' && { ...styles.activeTabText, color: '#ff0000' }
+              ]}>
+                👥 Users
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'monitor' && styles.activeTab]}
+              onPress={() => setActiveTab('monitor')}
+            >
+              <Ionicons 
+                name={activeTab === 'monitor' ? 'analytics' : 'analytics-outline'} 
+                size={18} 
+                color={activeTab === 'monitor' ? '#ff0000' : '#666'} 
+              />
+              <Text style={[
+                styles.tabText, 
+                activeTab === 'monitor' && { ...styles.activeTabText, color: '#ff0000' }
+              ]}>
+                🔍 Monitor
+              </Text>
+            </TouchableOpacity>
+          </>
         )}
       </View>
 

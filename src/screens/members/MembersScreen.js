@@ -11,7 +11,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { CalendarComponent } from '../../components';
+import { CalendarComponent, RoleBasedComponent } from '../../components';
 
 const MembersScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('calendar');
@@ -97,39 +97,56 @@ const MembersScreen = ({ navigation }) => {
     switch (activeTab) {
       case 'calendar':
         return (
-          <CalendarComponent
-            userRole="member"
-            onEventPress={handleEventPress}
-            onDatePress={handleDatePress}
-          />
+          <RoleBasedComponent 
+            requiredLevel={1} 
+            componentName="Members Calendar"
+            fallbackComponent={
+              <View style={styles.fallbackContainer}>
+                <Ionicons name="calendar-outline" size={48} color="#ccc" />
+                <Text style={styles.fallbackText}>Calendar access requires member authentication</Text>
+              </View>
+            }
+          >
+            <CalendarComponent
+              userRole="member"
+              onEventPress={handleEventPress}
+              onDatePress={handleDatePress}
+            />
+          </RoleBasedComponent>
         );
       default:
         return (
           <View style={styles.sectionsContainer}>
             {memberSections.filter(s => s.key !== 'calendar').map((section, index) => (
-              <TouchableOpacity
+              <RoleBasedComponent
                 key={index}
-                style={styles.sectionCard}
-                onPress={() => handleSectionPress(section)}
+                requiredLevel={section.key === 'directory' ? 2 : 1}
+                componentName={`Member Section: ${section.title}`}
+                hideWhenDenied={false}
               >
-                <View style={styles.sectionContent}>
-                  <Ionicons 
-                    name={section.icon} 
-                    size={32} 
-                    color="#3880ff" 
-                    style={styles.sectionIcon}
-                  />
-                  <View style={styles.sectionText}>
-                    <Text style={styles.sectionTitle}>{section.title}</Text>
-                    <Text style={styles.sectionDescription}>{section.description}</Text>
+                <TouchableOpacity
+                  style={styles.sectionCard}
+                  onPress={() => handleSectionPress(section)}
+                >
+                  <View style={styles.sectionContent}>
+                    <Ionicons 
+                      name={section.icon} 
+                      size={32} 
+                      color="#3880ff" 
+                      style={styles.sectionIcon}
+                    />
+                    <View style={styles.sectionText}>
+                      <Text style={styles.sectionTitle}>{section.title}</Text>
+                      <Text style={styles.sectionDescription}>{section.description}</Text>
+                    </View>
+                    <Ionicons 
+                      name="chevron-forward-outline" 
+                      size={20} 
+                      color="#999" 
+                    />
                   </View>
-                  <Ionicons 
-                    name="chevron-forward-outline" 
-                    size={20} 
-                    color="#999" 
-                  />
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </RoleBasedComponent>
             ))}
           </View>
         );
@@ -271,6 +288,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
+  },
+  fallbackContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: '#f8f9fa',
+  },
+  fallbackText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 16,
+    textAlign: 'center',
   },
 });
 

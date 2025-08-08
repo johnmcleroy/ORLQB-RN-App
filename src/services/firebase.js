@@ -55,6 +55,7 @@ if (Platform.OS === 'web') {
 
 // Export the services we'll use throughout the app
 export { auth, db };
+export const firestore = () => db; // Legacy support for firestore() calls
 export default app;
 
 /**

@@ -13,9 +13,16 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'rea
 import { Platform } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
-import { firestore } from '../../services/firebase';
+import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
-import EventInfoScreen from '../../screens/EventInfoScreen';
+// EventInfoScreen component for event details modal
+// Dynamically imported to avoid circular dependencies
+let EventInfoScreen = null;
+try {
+  EventInfoScreen = require('../../screens/EventInfoScreen').default;
+} catch (error) {
+  console.warn('EventInfoScreen not available:', error.message);
+}
 
 const CalendarComponent = ({ 
   userRole = 'member', // 'guest', 'member', 'leadman', 'admin'
@@ -90,7 +97,7 @@ const CalendarComponent = ({
       const { collection, onSnapshot, orderBy, query } = require('firebase/firestore');
       
       const eventsQuery = query(
-        collection(firestore(), 'events'),
+        collection(db, 'events'),
         orderBy('date', 'asc')
       );
 
@@ -172,7 +179,7 @@ const CalendarComponent = ({
       });
     } else {
       // React Native Firebase SDK
-      const eventsCollection = firestore().collection('events');
+      const eventsCollection = db.collection('events');
       
       return eventsCollection
         .orderBy('date', 'asc')
@@ -445,15 +452,8 @@ const CalendarComponent = ({
     );
   }
 
-  // Show authentication required message
-  if (!user) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Ionicons name="lock-closed-outline" size={48} color="#666" />
-        <Text style={styles.errorText}>Please sign in to view the calendar</Text>
-      </View>
-    );
-  }
+  // Allow guests to view calendar with limited functionality
+  // Authentication is now handled by RoleBasedComponent wrapper
 
   return (
     <View style={styles.container}>
@@ -510,13 +510,15 @@ const CalendarComponent = ({
 
       {renderEventModal()}
       
-      {/* Event Info Screen */}
-      <EventInfoScreen
-        event={selectedEvent}
-        visible={showEventInfo}
-        onClose={() => setShowEventInfo(false)}
-        onRSVP={handleEventRSVP}
-      />
+      {/* Event Info Screen - only render if component is available */}
+      {EventInfoScreen && (
+        <EventInfoScreen
+          event={selectedEvent}
+          visible={showEventInfo}
+          onClose={() => setShowEventInfo(false)}
+          onRSVP={handleEventRSVP}
+        />
+      )}
     </View>
   );
 };

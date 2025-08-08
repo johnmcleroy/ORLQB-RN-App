@@ -27,11 +27,12 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   getAllUsers, 
   updateUserRole, 
-  USER_ROLES, 
+  HANGAR_ROLES, 
   getRoleDisplayName, 
   getRoleColor,
+  getRoleIcon,
   canManageSystem,
-  ROLE_HIERARCHY
+  SECURITY_LEVELS
 } from '../../utils/userRoles';
 
 const UserManager = () => {
@@ -67,7 +68,7 @@ const UserManager = () => {
   };
 
   const handleRoleChange = (userData) => {
-    if (userData.role === USER_ROLES.SUDO_ADMIN) {
+    if (userData.role === HANGAR_ROLES.SUDO_ADMIN) {
       Alert.alert(
         'Cannot Modify',
         'Sudo admin status is hardcoded and cannot be changed through the interface.'
@@ -115,7 +116,7 @@ const UserManager = () => {
 
   const renderUserItem = ({ item }) => {
     const roleColor = getRoleColor(item.role);
-    const hierarchyLevel = ROLE_HIERARCHY[item.role] || 0;
+    const hierarchyLevel = SECURITY_LEVELS[item.role] || 0;
 
     return (
       <View style={styles.userCard}>
@@ -123,7 +124,7 @@ const UserManager = () => {
           <View style={styles.userInfo}>
             <View style={styles.userNameRow}>
               <Text style={styles.userName}>{item.displayName || 'Unknown'}</Text>
-              {item.role === USER_ROLES.SUDO_ADMIN && (
+              {item.role === HANGAR_ROLES.SUDO_ADMIN && (
                 <Ionicons name="shield-checkmark" size={16} color="#ff0000" />
               )}
             </View>
@@ -133,7 +134,7 @@ const UserManager = () => {
           <TouchableOpacity
             style={[styles.roleButton, { backgroundColor: roleColor }]}
             onPress={() => handleRoleChange(item)}
-            disabled={item.role === USER_ROLES.SUDO_ADMIN}
+            disabled={item.role === HANGAR_ROLES.SUDO_ADMIN}
           >
             <Text style={styles.roleButtonText}>
               {getRoleDisplayName(item.role)}
@@ -164,7 +165,7 @@ const UserManager = () => {
           </View>
         </View>
 
-        {item.role === USER_ROLES.SUDO_ADMIN && (
+        {item.role === HANGAR_ROLES.SUDO_ADMIN && (
           <View style={styles.sudoAdminBadge}>
             <Text style={styles.sudoAdminText}>🛡️ HARDCODED SUDO ADMIN</Text>
           </View>
@@ -204,8 +205,8 @@ const UserManager = () => {
           <Text style={styles.roleSelectionTitle}>Select New Role:</Text>
 
           <ScrollView style={styles.roleOptions}>
-            {Object.values(USER_ROLES)
-              .filter(role => role !== USER_ROLES.SUDO_ADMIN) // Can't assign sudo admin
+            {Object.values(HANGAR_ROLES)
+              .filter(role => role !== HANGAR_ROLES.SUDO_ADMIN) // Can't assign sudo admin
               .map((role) => (
                 <TouchableOpacity
                   key={role}
@@ -228,7 +229,7 @@ const UserManager = () => {
                         styles.roleOptionDescription,
                         { color: selectedNewRole === role ? 'rgba(255,255,255,0.8)' : '#666' }
                       ]}>
-                        Access Level: {ROLE_HIERARCHY[role]}/5
+                        Access Level: {SECURITY_LEVELS[role]}/5
                       </Text>
                     </View>
                     
@@ -306,13 +307,13 @@ const UserManager = () => {
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>
-            {users.filter(u => u.role === USER_ROLES.ADMIN).length}
+            {users.filter(u => u.role === HANGAR_ROLES.GOVERNOR || u.role === HANGAR_ROLES.HISTORIAN).length}
           </Text>
           <Text style={styles.statLabel}>Admins</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>
-            {users.filter(u => u.role === USER_ROLES.MEMBER).length}
+            {users.filter(u => u.role === HANGAR_ROLES.MEMBER).length}
           </Text>
           <Text style={styles.statLabel}>Members</Text>
         </View>

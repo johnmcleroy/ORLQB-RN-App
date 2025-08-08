@@ -134,7 +134,7 @@ const IntroScreen = ({ onComplete }) => {
             <Text style={styles.description}>
               Connecting Pilots and Goodfellows{'\n'}
               Building tomorrow's ORLQB's today{'\n'}
-              Enrichening our Brotherhood
+              Enrichening our Brotherhood{'\n'}
             </Text>
           </View>
 

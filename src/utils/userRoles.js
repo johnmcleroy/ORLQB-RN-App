@@ -21,7 +21,7 @@
  */
 
 import { Platform } from 'react-native';
-import { firestore } from '../services/firebase';
+import { db } from '../services/firebase';
 
 // ORLQB Hangar Role Constants
 export const HANGAR_ROLES = {
@@ -136,7 +136,7 @@ export const getUserRole = async (user) => {
     // Get user role from Firestore
     if (Platform.OS === 'web') {
       const { doc, getDoc } = require('firebase/firestore');
-      const userDoc = await getDoc(doc(firestore(), 'users', user.uid));
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
       
       console.log(`getUserRole: Firestore lookup for ${user.email} - Document exists: ${userDoc.exists()}`);
       
@@ -150,7 +150,7 @@ export const getUserRole = async (user) => {
         console.log(`getUserRole: No Firestore document found for ${user.email} (${user.uid})`);
       }
     } else {
-      const userDoc = await firestore().collection('users').doc(user.uid).get();
+      const userDoc = await db.collection('users').doc(user.uid).get();
       
       console.log(`getUserRole: Native Firestore lookup for ${user.email} - Document exists: ${userDoc.exists}`);
       
@@ -220,9 +220,9 @@ export const createUserProfile = async (user, role = HANGAR_ROLES.MEMBER) => {
 
     if (Platform.OS === 'web') {
       const { doc, setDoc } = require('firebase/firestore');
-      await setDoc(doc(firestore(), 'users', user.uid), userProfile, { merge: true });
+      await setDoc(doc(db, 'users', user.uid), userProfile, { merge: true });
     } else {
-      await firestore().collection('users').doc(user.uid).set(userProfile, { merge: true });
+      await db.collection('users').doc(user.uid).set(userProfile, { merge: true });
     }
 
     return { success: true, role: userProfile.role };
@@ -264,9 +264,9 @@ export const updateUserRole = async (currentUser, targetUserId, newRole) => {
 
     if (Platform.OS === 'web') {
       const { doc, updateDoc } = require('firebase/firestore');
-      await updateDoc(doc(firestore(), 'users', targetUserId), updateData);
+      await updateDoc(doc(db, 'users', targetUserId), updateData);
     } else {
-      await firestore().collection('users').doc(targetUserId).update(updateData);
+      await db.collection('users').doc(targetUserId).update(updateData);
     }
 
     return { success: true };
@@ -292,14 +292,14 @@ export const getAllUsers = async (currentUser) => {
 
     if (Platform.OS === 'web') {
       const { collection, getDocs, orderBy, query } = require('firebase/firestore');
-      const usersQuery = query(collection(firestore(), 'users'), orderBy('createdAt', 'desc'));
+      const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
       const snapshot = await getDocs(usersQuery);
       
       snapshot.forEach((doc) => {
         users.push({ id: doc.id, ...doc.data() });
       });
     } else {
-      const snapshot = await firestore()
+      const snapshot = await db
         .collection('users')
         .orderBy('createdAt', 'desc')
         .get();
@@ -481,9 +481,9 @@ export const createSpecificUserDocument = async (currentUser, userData) => {
 
     if (Platform.OS === 'web') {
       const { doc, setDoc } = require('firebase/firestore');
-      await setDoc(doc(firestore(), 'users', userData.uid), userProfile, { merge: true });
+      await setDoc(doc(db, 'users', userData.uid), userProfile, { merge: true });
     } else {
-      await firestore().collection('users').doc(userData.uid).set(userProfile, { merge: true });
+      await db.collection('users').doc(userData.uid).set(userProfile, { merge: true });
     }
 
     console.log(`✅ User document created: ${userData.email} as ${userData.role}`);
@@ -517,9 +517,9 @@ export const initializeTestUser = async (user) => {
 
     if (Platform.OS === 'web') {
       const { doc, setDoc } = require('firebase/firestore');
-      await setDoc(doc(firestore(), 'users', user.uid), testUserProfile, { merge: true });
+      await setDoc(doc(db, 'users', user.uid), testUserProfile, { merge: true });
     } else {
-      await firestore().collection('users').doc(user.uid).set(testUserProfile, { merge: true });
+      await db.collection('users').doc(user.uid).set(testUserProfile, { merge: true });
     }
 
     console.log(`✅ Test user initialized: ${user.email} as ${HANGAR_ROLES.SUDO_ADMIN}`);
@@ -540,5 +540,244 @@ export const initializeSudoAdmin = async (user) => {
     console.log(`✅ ORLQB System Administrator initialized: ${user.email}`);
   } catch (error) {
     console.error('Error initializing sudo admin:', error);
+  }
+};
+
+/**
+ * ADMINISTRATOR MONITORING SYSTEM
+ * 
+ * These functions provide visibility tracking for component access,
+ * allowing administrators to monitor which users are accessing 
+ * which restricted components and pages.
+ */
+
+// In-memory storage for visibility events (production should use Firebase)
+let visibilityEventLog = [];
+const MAX_LOG_ENTRIES = 1000; // Keep last 1000 events in memory
+
+/**
+ * Log a visibility event for administrator monitoring
+ */
+export const logVisibilityEvent = (eventData) => {
+  try {
+    const event = {
+      id: generateEventId(),
+      ...eventData,
+      timestamp: eventData.timestamp || new Date().toISOString()
+    };
+
+    // Add to in-memory log
+    visibilityEventLog.unshift(event);
+    
+    // Keep only the most recent entries
+    if (visibilityEventLog.length > MAX_LOG_ENTRIES) {
+      visibilityEventLog = visibilityEventLog.slice(0, MAX_LOG_ENTRIES);
+    }
+
+    // In production, this should also write to Firestore for persistent monitoring
+    // TODO: Add Firestore persistence for admin monitoring
+    if (eventData.userRole === HANGAR_ROLES.SUDO_ADMIN || eventData.userLevel >= 4) {
+      console.log('📊 Admin Access Event:', {
+        component: event.componentName,
+        user: event.userEmail,
+        role: event.userRole,
+        granted: event.accessGranted,
+        reason: event.accessReason
+      });
+    }
+
+  } catch (error) {
+    console.error('Error logging visibility event:', error);
+  }
+};
+
+/**
+ * Generate unique event ID
+ */
+const generateEventId = () => {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+};
+
+/**
+ * Get visibility events for administrator dashboard (sudo admin only)
+ */
+export const getVisibilityEvents = async (currentUser, filters = {}) => {
+  if (!currentUser) return { success: false, error: 'Not authenticated' };
+
+  const currentUserRole = await getUserRole(currentUser);
+  if (currentUserRole !== HANGAR_ROLES.SUDO_ADMIN) {
+    return { success: false, error: 'Insufficient permissions - Sudo Admin required' };
+  }
+
+  try {
+    let filteredEvents = [...visibilityEventLog];
+
+    // Apply filters
+    if (filters.userEmail) {
+      filteredEvents = filteredEvents.filter(event => 
+        event.userEmail.toLowerCase().includes(filters.userEmail.toLowerCase())
+      );
+    }
+
+    if (filters.componentName) {
+      filteredEvents = filteredEvents.filter(event => 
+        event.componentName.toLowerCase().includes(filters.componentName.toLowerCase())
+      );
+    }
+
+    if (filters.userRole) {
+      filteredEvents = filteredEvents.filter(event => event.userRole === filters.userRole);
+    }
+
+    if (filters.accessGranted !== undefined) {
+      filteredEvents = filteredEvents.filter(event => event.accessGranted === filters.accessGranted);
+    }
+
+    if (filters.dateFrom) {
+      filteredEvents = filteredEvents.filter(event => 
+        new Date(event.timestamp) >= new Date(filters.dateFrom)
+      );
+    }
+
+    if (filters.dateTo) {
+      filteredEvents = filteredEvents.filter(event => 
+        new Date(event.timestamp) <= new Date(filters.dateTo)
+      );
+    }
+
+    // Sort by timestamp (newest first)
+    filteredEvents.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    // Limit results
+    const limit = filters.limit || 100;
+    filteredEvents = filteredEvents.slice(0, limit);
+
+    return { 
+      success: true, 
+      events: filteredEvents,
+      totalCount: visibilityEventLog.length
+    };
+  } catch (error) {
+    console.error('Error getting visibility events:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Get visibility statistics for administrator dashboard
+ */
+export const getVisibilityStatistics = async (currentUser) => {
+  if (!currentUser) return { success: false, error: 'Not authenticated' };
+
+  const currentUserRole = await getUserRole(currentUser);
+  if (currentUserRole !== HANGAR_ROLES.SUDO_ADMIN) {
+    return { success: false, error: 'Insufficient permissions - Sudo Admin required' };
+  }
+
+  try {
+    const stats = {
+      totalEvents: visibilityEventLog.length,
+      accessGranted: 0,
+      accessDenied: 0,
+      uniqueUsers: new Set(),
+      uniqueComponents: new Set(),
+      roleBreakdown: {},
+      denialReasons: {},
+      recentActivity: []
+    };
+
+    // Calculate statistics
+    visibilityEventLog.forEach(event => {
+      if (event.accessGranted) {
+        stats.accessGranted++;
+      } else {
+        stats.accessDenied++;
+        stats.denialReasons[event.accessReason] = (stats.denialReasons[event.accessReason] || 0) + 1;
+      }
+
+      stats.uniqueUsers.add(event.userEmail);
+      stats.uniqueComponents.add(event.componentName);
+      
+      stats.roleBreakdown[event.userRole] = (stats.roleBreakdown[event.userRole] || 0) + 1;
+    });
+
+    // Get recent activity (last 24 hours)
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    stats.recentActivity = visibilityEventLog.filter(event => 
+      new Date(event.timestamp) > yesterday
+    ).slice(0, 20); // Last 20 recent events
+
+    // Convert Sets to counts
+    stats.uniqueUsers = stats.uniqueUsers.size;
+    stats.uniqueComponents = stats.uniqueComponents.size;
+
+    return { success: true, statistics: stats };
+  } catch (error) {
+    console.error('Error getting visibility statistics:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Clear visibility event log (sudo admin only)
+ */
+export const clearVisibilityLog = async (currentUser) => {
+  if (!currentUser) return { success: false, error: 'Not authenticated' };
+
+  const currentUserRole = await getUserRole(currentUser);
+  if (currentUserRole !== HANGAR_ROLES.SUDO_ADMIN) {
+    return { success: false, error: 'Insufficient permissions - Sudo Admin required' };
+  }
+
+  try {
+    const clearedCount = visibilityEventLog.length;
+    visibilityEventLog = [];
+    
+    // Log the clear action
+    logVisibilityEvent({
+      componentName: 'Admin Monitor - Log Cleared',
+      userEmail: currentUser.email,
+      userRole: currentUserRole,
+      userLevel: SECURITY_LEVELS[currentUserRole],
+      accessGranted: true,
+      accessReason: 'admin_log_cleared',
+      metadata: { clearedCount }
+    });
+
+    return { success: true, message: `Cleared ${clearedCount} events from visibility log` };
+  } catch (error) {
+    console.error('Error clearing visibility log:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Export visibility events to JSON (sudo admin only)
+ */
+export const exportVisibilityEvents = async (currentUser, filters = {}) => {
+  if (!currentUser) return { success: false, error: 'Not authenticated' };
+
+  const currentUserRole = await getUserRole(currentUser);
+  if (currentUserRole !== HANGAR_ROLES.SUDO_ADMIN) {
+    return { success: false, error: 'Insufficient permissions - Sudo Admin required' };
+  }
+
+  try {
+    const result = await getVisibilityEvents(currentUser, filters);
+    if (!result.success) return result;
+
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      exportedBy: currentUser.email,
+      filters,
+      totalEvents: result.totalCount,
+      exportedEvents: result.events.length,
+      events: result.events
+    };
+
+    return { success: true, exportData };
+  } catch (error) {
+    console.error('Error exporting visibility events:', error);
+    return { success: false, error: error.message };
   }
 };
